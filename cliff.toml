@@ -1,0 +1,16 @@
+[git]
+conventional_commits = false
+tag_prefix = ""  # include all commits
+ignore_merge_commits = true
+
+[output]
+file = "CHANGELOG.md"
+
+[parser]
+allow_unconventional = true
+
+[sections]
+feat = { title = "Features", kind = "feat" }
+fix  = { title = "Bug Fixes", kind = "fix" }
+chore = { title = "Chores", kind = "chore" }
+docs  = { title = "Documentation", kind = "docs" }

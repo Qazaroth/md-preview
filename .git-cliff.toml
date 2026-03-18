@@ -1,5 +1,0 @@
-[git]
-tag_prefix = "v"
-
-[output]
-file = "CHANGELOG.md"
