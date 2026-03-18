@@ -16,10 +16,10 @@ Build a fast and minimal Markdown previewer using Rust, then progressively enhan
 
 ### Tasks
 - [x] Initialize Rust project (`cargo new md-previewer`)
-- [ ] Read file from CLI argument
-- [ ] Parse Markdown using `pulldown-cmark`
-- [ ] Convert to HTML
-- [ ] Print HTML to terminal
+- [x] Read file from CLI argument
+- [x] Parse Markdown using `pulldown-cmark`
+- [x] Convert to HTML
+- [x] Print HTML to terminal
 
 ---
 
