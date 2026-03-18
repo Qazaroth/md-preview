@@ -95,6 +95,12 @@ jobs:
           name: changelog
           path: .
 
+      - name: Debug changelog
+        run: |
+          ls -la
+          echo "----- CHANGELOG CONTENT -----"
+          cat CHANGELOG.md
+
       - name: Create GitHub Release & Upload Binaries
         uses: softprops/action-gh-release@v2
         with:
