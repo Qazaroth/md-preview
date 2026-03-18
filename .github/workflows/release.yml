@@ -95,16 +95,17 @@ jobs:
           name: changelog
           path: .
 
-      - name: Debug changelog
+      - name: Read changelog
+        id: changelog
         run: |
-          ls -la
-          echo "----- CHANGELOG CONTENT -----"
-          cat CHANGELOG.md
+          echo "content<<EOF" >> $GITHUB_OUTPUT
+          cat CHANGELOG.md >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
-      - name: Create GitHub Release & Upload Binaries
+      - name: Create Release & Upload
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
           release_name: Release ${{ github.ref_name }}
-          body_path: CHANGELOG.md
+          body: ${{ steps.changelog.outputs.content }}
           files: dist/**/*
