@@ -95,17 +95,16 @@ jobs:
           name: changelog
           path: .
 
-      - name: Read changelog
-        id: changelog
+      - name: Load changelog into env
         run: |
-          echo "content<<EOF" >> $GITHUB_OUTPUT
-          cat CHANGELOG.md >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          echo "CHANGELOG<<EOF" >> $GITHUB_ENV
+          cat CHANGELOG.md >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
 
       - name: Create Release & Upload
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
           release_name: Release ${{ github.ref_name }}
-          body: ${{ steps.changelog.outputs.content }}
+          body: ${{ env.CHANGELOG }}
           files: dist/**/*
