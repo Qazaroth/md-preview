@@ -10,7 +10,7 @@ struct Args {
     file: std::path::PathBuf,
 }
 
-fn main() {
+fn parse_args() -> std::path::PathBuf {
     let args = Args::parse();
 
     if !args.file.exists() {
@@ -18,12 +18,27 @@ fn main() {
         std::process::exit(1);
     }
 
-    let file_path = args.file;
-    let markdown_input = fs::read_to_string(file_path).expect("Failed to read file.");
-    let parser = MdParser::new(&markdown_input);
+    args.file
+}
 
+fn read_markdown(file_path: &std::path::Path) -> String {
+    fs::read_to_string(file_path).unwrap_or_else(|err| {
+        eprintln!("Failed to read file {}: {}", file_path.display(), err);
+        std::process::exit(1);
+    })
+}
+
+fn markdown_to_html(markdown_input: &str) -> String {
+    let parser = MdParser::new(markdown_input);
     let mut html_output = String::new();
     html::push_html(&mut html_output, parser);
+    html_output
+}
+
+fn main() {
+    let file_path = parse_args();
+    let markdown_input = read_markdown(&file_path);
+    let html_output = markdown_to_html(&markdown_input);
 
     println!("{}", html_output);
 }
