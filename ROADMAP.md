@@ -28,10 +28,10 @@ Build a fast and minimal Markdown previewer using Rust, then progressively enhan
 **Goal:** Make it usable as a real tool
 
 ### Tasks
-- [ ] Add CLI argument parsing (`clap`)
-- [ ] Handle errors properly (missing file, invalid input)
-- [ ] Add help command (`--help`)
-- [ ] Clean code structure (separate functions)
+- [x] Add CLI argument parsing (`clap`)
+- [x] Handle errors properly (missing file, invalid input)
+- [x] Add help command (`--help`)
+- [x] Clean code structure (separate functions)
 
 ---
 
