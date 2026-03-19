@@ -55,7 +55,7 @@ Build a fast and minimal Markdown previewer using Rust, then progressively enhan
 - [x] Watch filse changes (`notify` crate)
 - [x] Rebuild HTML on file save
 - [x] Auto-refresh browser
-- [ ] Add `--watch` flag
+- [x] Add `--watch` flag
 
 ---
 
@@ -91,8 +91,8 @@ Build a fast and minimal Markdown previewer using Rust, then progressively enhan
 - [ ] Write clean `README.md`
 - [ ] Add usage examples
 - [ ] Record demo GIF
-- [ ] Add `.gitignore`
-- [ ] Build release binaries
+- [x] Add `.gitignore`
+- [x] Build release binaries
 - [ ] Publish on GitHub Releases
 
 ---

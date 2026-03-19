@@ -13,9 +13,15 @@ pub struct Args {
     #[arg(long)]
     pub no_open: bool,
 
-    // Watch markdown file
+    /// Watch markdown file
     #[arg(long)]
     pub watch: bool,
+
+    /// Preserve preview file or delete once done
+    #[arg(long)]
+    pub save: bool,
+
+    pub verbose: bool,
 }
 
 pub fn parse_args() -> Result<Args, Box<dyn Error>> {
