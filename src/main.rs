@@ -1,51 +1,19 @@
-use clap::Parser;
-use pulldown_cmark::{Parser as MdParser, html};
-//use rand::distr::{Alphanumeric, SampleString};
-use std::fs;
-use std::fs::File;
-use std::io::prelude::*;
+mod args;
+mod browser;
+mod markdown;
 
-#[derive(Parser, Debug)]
-#[command(version, about, long_about = None)]
-struct Args {
-    /// Path to markdown file
-    #[arg(long, value_parser = clap::value_parser!(std::path::PathBuf))]
-    file: std::path::PathBuf,
-}
+use std::error::Error;
 
-fn parse_args() -> std::path::PathBuf {
-    let args = Args::parse();
+fn main() -> Result<(), Box<dyn Error>> {
+    let args = args::parse_args()?;
+    let markdown_input = markdown::read_markdown(&args.file)?;
+    let html_output = markdown::markdown_to_html(&markdown_input);
 
-    if !args.file.exists() {
-        eprintln!("File does not exist.");
-        std::process::exit(1);
+    if args.no_open {
+        println!("{}", html_output);
+    } else {
+        browser::open_html_and_wait(&html_output)?;
     }
 
-    args.file
-}
-
-fn read_markdown(file_path: &std::path::Path) -> String {
-    fs::read_to_string(file_path).unwrap_or_else(|err| {
-        eprintln!("Failed to read file {}: {}", file_path.display(), err);
-        std::process::exit(1);
-    })
-}
-
-fn markdown_to_html(markdown_input: &str) -> String {
-    let parser = MdParser::new(markdown_input);
-    let mut html_output = String::new();
-    html::push_html(&mut html_output, parser);
-    html_output
-}
-
-fn main() -> std::io::Result<()> {
-    //let tempString = Alphanumeric.sample_string(&mut rand::rng(), 16);
-    let file_path = parse_args();
-    let markdown_input = read_markdown(&file_path);
-    let html_output = markdown_to_html(&markdown_input);
-    let mut file = File::create("temp.html")?;
-    file.write_all(html_output.as_bytes())?;
-
-    println!("{}", html_output);
     Ok(())
 }
