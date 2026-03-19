@@ -15,6 +15,12 @@ const CSS_LIGHT: &str = include_str!("themes/light.css");
 const CSS_DARK: &str = include_str!("themes/dark.css");
 const CSS_GIT: &str = include_str!("themes/github.css");
 
+macro_rules! verbose {
+    ($verbose:expr, $($arg:tt)*) => {
+        if $verbose { eprintln!("[verbose] {}", format!($($arg)*)); }
+    };
+}
+
 // ---------------------------------------------------------------------------
 // TempPreview — RAII guard that deletes the preview file on drop
 // ---------------------------------------------------------------------------
@@ -48,6 +54,7 @@ impl Drop for TempPreview {
 
 fn resolve_css(args: &args::Args, config: &config::Config) -> Result<String, Box<dyn Error>> {
     if let Some(path) = &args.css {
+        verbose!(true, "using custom CSS from: {}", path.display());
         return Ok(fs::read_to_string(path)?);
     }
 
@@ -79,7 +86,7 @@ fn render_markdown_file(path: &Path, css: &str) -> Result<String, Box<dyn Error>
 
 /// Watch `src` for modifications and re-write the rendered HTML to `dest`
 /// on every change.
-fn watch_file(src: &Path, dest: &Path, css: &str) -> Result<(), Box<dyn Error>> {
+fn watch_file(src: &Path, dest: &Path, css: &str, verbose: bool) -> Result<(), Box<dyn Error>> {
     let (tx, rx) = channel();
     let mut watcher: RecommendedWatcher = Watcher::new(tx, Config::default())?;
     watcher.watch(src, RecursiveMode::NonRecursive)?;
@@ -90,8 +97,11 @@ fn watch_file(src: &Path, dest: &Path, css: &str) -> Result<(), Box<dyn Error>> 
         match event {
             Ok(ev) if matches!(ev.kind, EventKind::Modify(_)) => {
                 println!("File changed — regenerating HTML…");
+                verbose!(verbose, "event: {ev:?}");
                 let html = render_markdown_file(src, css)?;
+                verbose!(verbose, "rendered {} bytes", html.len());
                 fs::write(dest, html)?;
+                verbose!(verbose, "wrote to: {}", dest.display());
             }
             Ok(_) => {}
             Err(e) => eprintln!("Watch error: {e:?}"),
@@ -110,15 +120,23 @@ fn main() -> Result<(), Box<dyn Error>> {
     let config = config::Config::load();
 
     if args.verbose {
-        println!("{args:?}");
-        println!("{config:?}");
+        eprintln!("[verbose] args:   {args:?}");
+        eprintln!("[verbose] config: {config:?}");
     }
 
     let css = resolve_css(&args, &config)?;
 
+    let theme = args
+        .theme
+        .as_deref()
+        .or(config.theme.as_deref())
+        .unwrap_or("light");
+    verbose!(args.verbose, "theme:    {theme}");
+
     // --no-open: print HTML to stdout and exit immediately.
     if args.no_open {
         let html = render_markdown_file(&args.file, &css)?;
+        verbose!(args.verbose, "rendered {} bytes of HTML", html.len());
         println!("{html}");
         return Ok(());
     }
@@ -126,8 +144,18 @@ fn main() -> Result<(), Box<dyn Error>> {
     let filename = resolve_output_filename(&args, &config);
     let save = args.save.or(config.save).unwrap_or(false);
 
+    verbose!(args.verbose, "output filename: {filename}");
+    verbose!(args.verbose, "save on exit:    {save}");
+
     let html = render_markdown_file(&args.file, &css)?;
+    verbose!(args.verbose, "rendered {} bytes of HTML", html.len());
+
     let preview_path = browser::open_html_and_wait(&html, &filename)?;
+    verbose!(
+        args.verbose,
+        "preview written to: {}",
+        preview_path.display()
+    );
 
     // `preview` deletes the file on drop (unless --save was set).
     let preview = Arc::new(TempPreview::new(preview_path.clone(), save));
@@ -135,16 +163,15 @@ fn main() -> Result<(), Box<dyn Error>> {
     // Mirror the same cleanup in the Ctrl-C handler so the file is removed
     // even when the process is interrupted before `preview` drops normally.
     let preview_for_handler = Arc::clone(&preview);
+    let verbose = args.verbose;
     ctrlc::set_handler(move || {
-        if args.verbose {
-            println!("Ctrl+C detected — cleaning up…");
-        }
+        verbose!(verbose, "Ctrl+C detected — cleaning up…");
         preview_for_handler.cleanup();
         std::process::exit(0);
     })?;
 
     if args.watch {
-        watch_file(&args.file, &preview_path, &css)?;
+        watch_file(&args.file, &preview_path, &css, args.verbose)?;
     }
 
     Ok(())
