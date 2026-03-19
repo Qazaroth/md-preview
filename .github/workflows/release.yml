@@ -34,7 +34,7 @@ jobs:
         shell: bash
         run: |
           VERSION=$(cargo metadata --format-version 1 --no-deps | jq -r '.packages[0].version')
-          echo "VERSION=$VERSION"
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
 
       - name: Build release binary
         run: cargo build --release
@@ -48,15 +48,15 @@ jobs:
         run: strip target/release/${{ matrix.bin }}
 
       - name: Rename binary for release
+        shell: bash
         run: |
-          # Add version to filename
-          cp target/release/${{ matrix.bin }} dist/${{ matrix.bin }}-${VERSION}-${{ matrix.os }}
+          cp target/release/${{ matrix.bin }} dist/${{ matrix.bin }}-${{ env.VERSION }}-${{ matrix.os }}
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.bin }}-${{ env.VERSION }}-${{ matrix.os }}
-          path: dist/${{ matrix.bin }}-${VERSION}-${{ matrix.os }}
+          path: dist/${{ matrix.bin }}-${{ env.VERSION }}-${{ matrix.os }}
 
   release:
     name: Create Release
