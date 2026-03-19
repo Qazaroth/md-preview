@@ -30,12 +30,11 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Get version from Cargo.toml
-        id: cargo_version
+      - name: Get version
+        shell: bash
         run: |
-          VERSION=$(cargo metadata --format-version 1 --no-deps \
-            | jq -r '.packages[0].version')
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          VERSION=$(cargo metadata --format-version 1 --no-deps | jq -r '.packages[0].version')
+          echo "VERSION=$VERSION"
 
       - name: Build release binary
         run: cargo build --release
