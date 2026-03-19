@@ -1,6 +1,6 @@
 [git]
 conventional_commits = false
-tag_prefix = ""  # include all commits
+tag_prefix = ""
 ignore_merge_commits = true
 
 [output]
@@ -8,6 +8,28 @@ file = "CHANGELOG.md"
 
 [parser]
 allow_unconventional = true
+
+[changelog]
+body = """
+# Release Notes
+
+{% if version %}
+## {{ version | trim_start_matches(pat="v") }} - {{ timestamp | date(format="%Y-%m-%d") }}
+
+{% else %}
+## Unreleased
+
+{% endif %}
+
+{% for group, commits in commits | group_by(attribute="group") %}
+### {{ group }}
+
+{% for commit in commits %}
+- {{ commit.message }}
+{% endfor %}
+
+{% endfor %}
+"""
 
 [sections]
 feat = { title = "Features", kind = "feat" }
