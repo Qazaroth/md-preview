@@ -24,14 +24,16 @@ Release {{ version | trim_start_matches(pat="v") }} - {{ timestamp | date(format
 {% endif %}
 {% endfor %}
 
-{% set ungrouped = commits | selectattr("group", "equalto", "") | list %}
-{% if ungrouped | length > 0 %}
+{% set has_ungrouped = false %}
+{% for commit in commits %}
+{% if commit.group == "" %}
+{% if not has_ungrouped %}
 ### Other Changes
-
-{% for commit in ungrouped %}
-- {{ commit.message }}
-{% endfor %}
+{% set has_ungrouped = true %}
 {% endif %}
+- {{ commit.message }}
+{% endif %}
+{% endfor %}
 """
 
 [sections]
