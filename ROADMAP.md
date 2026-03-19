@@ -8,13 +8,13 @@ A fast, minimal Rust CLI to preview Markdown files as HTML in the browser.
 
 | Phase | Description | Status |
 |-------|-------------|--------|
-| [Phase 1](#-phase-1-mvp) | MVP — Markdown → HTML | ✅ Complete |
-| [Phase 2](#-phase-2-cli-usability) | CLI usability | ✅ Complete |
-| [Phase 3](#-phase-3-browser-preview) | Browser preview | ✅ Complete |
-| [Phase 4](#-phase-4-live-reload) | Live reload | ✅ Complete |
-| [Phase 5](#-phase-5-styling--themes) | Styling & themes | ✅ Complete |
-| [Phase 6](#-phase-6-advanced-features) | Advanced features | 🔄 In progress |
-| [Phase 7](#-phase-7-polish--release) | Polish & release | 🔲 Upcoming |
+| [Phase 1](#-phase-1--mvp) | MVP — Markdown → HTML | ✅ Complete |
+| [Phase 2](#-phase-2--cli-usability) | CLI usability | ✅ Complete |
+| [Phase 3](#-phase-3--browser-preview) | Browser preview | ✅ Complete |
+| [Phase 4](#-phase-4--live-reload) | Live reload | ✅ Complete |
+| [Phase 5](#-phase-5--styling--themes) | Styling & themes | ✅ Complete |
+| [Phase 6](#-phase-6--advanced-features) | Advanced features | 🔄 In progress |
+| [Phase 7](#-phase-7--polish--release) | Polish & release | 🔲 Upcoming |
 
 ---
 
