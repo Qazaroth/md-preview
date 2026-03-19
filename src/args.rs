@@ -12,6 +12,10 @@ pub struct Args {
     /// Do not open in browser
     #[arg(long)]
     pub no_open: bool,
+
+    // Watch markdown file
+    #[arg(long)]
+    pub watch: bool,
 }
 
 pub fn parse_args() -> Result<Args, Box<dyn Error>> {
