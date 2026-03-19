@@ -70,12 +70,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Delete previous release assets
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          delete_assets: true # deletes all existing files for this tag
+
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Clean dist folder
+      - name: Clean dist
         run: rm -rf dist
 
       - name: Download build artifacts
@@ -94,4 +100,4 @@ jobs:
           name: Release ${{ github.ref_name }}
           body: "Release ${{ github.ref_name }}"
           files: dist/**/*
-          overwrite_files: true
+          overwrite_files: true # <--- this ensures duplicates are replaced
