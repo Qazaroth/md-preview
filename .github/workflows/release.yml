@@ -3,7 +3,7 @@ name: Build & Release
 on:
   push:
     tags:
-      - "v*.*.*" # triggers on version tags like v1.0.0
+      - "v*.*.*"
 
 permissions:
   contents: write
@@ -17,17 +17,14 @@ jobs:
       matrix:
         include:
           - os: ubuntu-latest
-            target: x86_64-unknown-linux-gnu
             bin: md-preview
             name: md-preview-linux
 
           - os: macos-latest
-            target: x86_64-apple-darwin
             bin: md-preview
             name: md-preview-macos
 
           - os: windows-latest
-            target: x86_64-pc-windows-msvc
             bin: md-preview.exe
             name: md-preview-windows.exe
 
@@ -56,12 +53,13 @@ jobs:
           name: ${{ matrix.name }}
           path: dist/${{ matrix.name }}
 
-  changelog:
-    name: Generate Changelog
-    runs-on: ubuntu-latest
+  release:
+    name: Create Release
     needs: build
+    runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout code with full history
+      - name: Checkout code (full history)
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -69,44 +67,21 @@ jobs:
       - name: Install git-cliff
         run: cargo install git-cliff --locked
 
-      - name: Generate CHANGELOG.md
-        run: git-cliff -o CHANGELOG.md
+      - name: Generate CHANGELOG
+        run: git-cliff -c .git-cliff.toml -o CHANGELOG.md
 
-      - name: Upload changelog artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: changelog
-          path: CHANGELOG.md
+      - name: Debug changelog
+        run: cat CHANGELOG.md
 
-  release:
-    name: Create Release
-    needs: [build, changelog]
-    runs-on: ubuntu-latest
-
-    steps:
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
           path: dist
 
-      - name: Download changelog
-        uses: actions/download-artifact@v4
-        with:
-          name: changelog
-          path: .
-
-      - name: Load changelog into env
-        run: |
-          echo "CHANGELOG<<EOF" >> $GITHUB_ENV
-          echo "# Release Notes" >> $GITHUB_ENV
-          echo "" >> $GITHUB_ENV
-          cat CHANGELOG.md >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
-
-      - name: Create Release & Upload
+      - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
           release_name: Release ${{ github.ref_name }}
-          body: ${{ env.CHANGELOG }}
+          body_path: CHANGELOG.md
           files: dist/**/*
