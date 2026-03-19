@@ -106,3 +106,29 @@ fn slugify(text: &str) -> String {
         })
         .collect()
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_slugify() {
+        assert_eq!(slugify("Hello World"), "hello-world");
+        assert_eq!(slugify("Phase 1 — MVP"), "phase-1--mvp");
+    }
+
+    #[test]
+    fn test_heading_ids_injected() {
+        let html = "<h1>Hello World</h1><h2>Section</h2>";
+        let result = inject_heading_ids(html);
+        assert!(result.contains(r#"id="hello-world""#));
+        assert!(result.contains(r#"id="section""#));
+    }
+
+    #[test]
+    fn test_markdown_renders_heading() {
+        let html = markdown_to_html("# Title", "");
+        assert!(html.contains("<h1"));
+        assert!(html.contains("Title"));
+    }
+}

@@ -4,12 +4,18 @@
 
 ### Documentation
 
+- ROADMAP is now actually up-to-date
+
+- changelog changed
+
 - Changed license to Apache, updated ROADMAP and README
 
 - Update CHANGELOG.md for v0.6.0
 
 
 ### Features
+
+- Table of contents should work now in html
 
 - config file available
 

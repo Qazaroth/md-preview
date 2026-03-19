@@ -18,7 +18,7 @@ A fast, minimal Rust CLI to preview Markdown files as HTML in the browser.
 
 ---
 
-## 🟢 Phase 1 — MVP
+## Phase 1 — MVP
 
 **Goal:** Convert a Markdown file to HTML and print it to the terminal.
 
@@ -30,7 +30,7 @@ A fast, minimal Rust CLI to preview Markdown files as HTML in the browser.
 
 ---
 
-## 🔵 Phase 2 — CLI Usability
+## Phase 2 — CLI Usability
 
 **Goal:** Make it usable as a real command-line tool.
 
@@ -41,7 +41,7 @@ A fast, minimal Rust CLI to preview Markdown files as HTML in the browser.
 
 ---
 
-## 🟡 Phase 3 — Browser Preview
+## Phase 3 — Browser Preview
 
 **Goal:** Write rendered HTML to a temp file and open it in the default browser.
 
@@ -52,7 +52,7 @@ A fast, minimal Rust CLI to preview Markdown files as HTML in the browser.
 
 ---
 
-## 🟠 Phase 4 — Live Reload
+## Phase 4 — Live Reload
 
 **Goal:** Re-render and refresh the browser automatically on every file save.
 
@@ -65,7 +65,7 @@ A fast, minimal Rust CLI to preview Markdown files as HTML in the browser.
 
 ---
 
-## 🔴 Phase 5 — Styling & Themes
+## Phase 5 — Styling & Themes
 
 **Goal:** Make previews look good out of the box.
 
@@ -76,7 +76,7 @@ A fast, minimal Rust CLI to preview Markdown files as HTML in the browser.
 
 ---
 
-## 🟣 Phase 6 — Advanced Features
+## Phase 6 — Advanced Features
 
 **Goal:** Stand out from basic implementations.
 
@@ -87,7 +87,7 @@ A fast, minimal Rust CLI to preview Markdown files as HTML in the browser.
 
 ---
 
-## ⚫ Phase 7 — Polish & Release
+## Phase 7 — Polish & Release
 
 **Goal:** Make it production-ready and publicly available.
 
@@ -100,7 +100,7 @@ A fast, minimal Rust CLI to preview Markdown files as HTML in the browser.
 
 ---
 
-## 🚀 Future Ideas
+## Future Ideas
 
 - [ ] Serve via `localhost` (e.g. using `axum` or `actix-web`)
 - [ ] Package as a desktop app with Tauri
@@ -111,7 +111,7 @@ A fast, minimal Rust CLI to preview Markdown files as HTML in the browser.
 
 ---
 
-## 🧠 Learning Outcomes
+## Learning Outcomes
 
 Working through this project covers:
 
