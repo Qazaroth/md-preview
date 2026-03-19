@@ -40,8 +40,8 @@ Build a fast and minimal Markdown previewer using Rust, then progressively enhan
 **Goal:** Improve user experience
 
 ### Tasks
-- [ ] Generate temporary `.html` file
-- [ ] Wrap output in basic HTML template
+- [x] Generate temporary `.html` file
+- [x] Wrap output in basic HTML template
 - [ ] Open file in default browser (`webbrowser` crate)
 - [ ] Auto-clean temp files (optional)
 

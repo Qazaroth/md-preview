@@ -1,6 +1,9 @@
 use clap::Parser;
 use pulldown_cmark::{Parser as MdParser, html};
+//use rand::distr::{Alphanumeric, SampleString};
 use std::fs;
+use std::fs::File;
+use std::io::prelude::*;
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
@@ -35,10 +38,14 @@ fn markdown_to_html(markdown_input: &str) -> String {
     html_output
 }
 
-fn main() {
+fn main() -> std::io::Result<()> {
+    //let tempString = Alphanumeric.sample_string(&mut rand::rng(), 16);
     let file_path = parse_args();
     let markdown_input = read_markdown(&file_path);
     let html_output = markdown_to_html(&markdown_input);
+    let mut file = File::create("temp.html")?;
+    file.write_all(html_output.as_bytes())?;
 
     println!("{}", html_output);
+    Ok(())
 }
