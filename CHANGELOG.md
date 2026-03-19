@@ -1,8 +1,14 @@
-## [unreleased]
+## [0.5.0] - 2026-03-19
 
 ### 🚀 Features
 
 - Feat: notify implemented, rebuild html on save, auto-refresh browser
+- Feat: now use preview.html instead of tempfile
+- Feat: watch flag working now.
+
+### 💼 Other
+
+- Modifed release.yml
 ## [0.4.0] - 2026-03-19
 
 ### 🚀 Features
