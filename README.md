@@ -15,7 +15,7 @@ Built as a learning project. See [ROADMAP](ROADMAP.md) for planned features and 
 
 ## Installation
 
-**Recommended — download a prebuilt binary** from the [Releases](https://github.com/your-username/md-previewer/releases) tab. No Rust toolchain required.
+**Recommended — download a prebuilt binary** from the [Releases](https://github.com/qazaroth/md-previewer/releases) tab. No Rust toolchain required.
 
 Alternatively, build from source:
 

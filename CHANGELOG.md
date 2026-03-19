@@ -1,63 +1,45 @@
-## [0.5.0] - 2026-03-19
 
-### 🚀 Features
 
-- Feat: notify implemented, rebuild html on save, auto-refresh browser
-- Feat: now use preview.html instead of tempfile
-- Feat: watch flag working now.
+### Refactoring
 
-### 💼 Other
+- Code now readable and better organised
 
-- Modifed release.yml
-## [0.4.0] - 2026-03-19
 
-### 🚀 Features
+### Features
 
-- Feat: Output temp html file now
-- Feat: Phase 3 done
+- watch flag working now.
 
-### 🐛 Bug Fixes
+- now use preview.html instead of tempfile
 
-- Fixed workflow hopefully again
+- notify implemented, rebuild html on save, auto-refresh browser
 
-### 💼 Other
 
-- Changelogs updated for v0.4.0
-- Workflow creates dist now
-- Removed dist creation dupes
-- More changes to release.yml
-- Changed file output name for binary
-- Removed duplicates from release
-- Hopefully this removes dupes
-- Please
-## [0.3.0] - 2026-03-19
+### Features
 
-### 🐛 Bug Fixes
+- Phase 3 done
 
-- Fix: Changelogs not empty now
-- Fix: Hopefully fixed workflow 1
-- Fix: Hopefully workflow works now...
-- Fix: Please workflow work
-- Fix: Please workflow work please
-- Fix: Workflow is making me wanna
-- Fix: Idk how many times now
-- Fix: Last few attempts before giving up on workflow
-- Fix: Last attempt then no more
-- Fix: Really last one
+- Output temp html file now
 
-### 💼 Other
 
-- Phase 2 done again, properly
-- Yes
-- Why github
-- Scrapped changelogs generation
-## [0.2.0] - 2026-03-18
+### Bug Fixes
 
-### 💼 Other
+- Really last one
 
-- First commit
-- Added README
-- Fixed README
-- Phase 1 done
-- Phase 2
-- Add release workflow
+- Last attempt then no more
+
+- Last few attempts before giving up on workflow
+
+- Idk how many times now
+
+- Workflow is making me wanna
+
+- Please workflow work please
+
+- Please workflow work
+
+- Hopefully workflow works now...
+
+- Hopefully fixed workflow 1
+
+- Changelogs not empty now
+
