@@ -1,26 +1,27 @@
 use clap::Parser;
-use std::error::Error;
-use std::path::PathBuf;
+use std::{error::Error, path::PathBuf};
 
 #[derive(Parser, Debug)]
 #[command(version, about)]
 pub struct Args {
-    /// Path to markdown file
+    /// Path to the Markdown file to preview
     #[arg(long)]
     pub file: PathBuf,
 
-    /// Do not open in browser
+    /// Print HTML to stdout instead of opening a browser
     #[arg(long)]
     pub no_open: bool,
 
-    /// Watch markdown file
+    /// Re-render on every file save
     #[arg(long)]
     pub watch: bool,
 
-    /// Preserve preview file or delete once done
+    /// Keep the temporary preview file after exit
     #[arg(long)]
     pub save: bool,
 
+    /// Print extra diagnostic output
+    #[arg(long)]
     pub verbose: bool,
 }
 
@@ -28,7 +29,7 @@ pub fn parse_args() -> Result<Args, Box<dyn Error>> {
     let args = Args::parse();
 
     if !args.file.exists() {
-        return Err("File does not exist.".into());
+        return Err(format!("File not found: {}", args.file.display()).into());
     }
 
     Ok(args)

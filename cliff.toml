@@ -1,16 +1,29 @@
+[changelog]
+header = ""
+body = """
+{% for group, commits in commits | group_by(attribute="group") %}
+### {{ group }}
+{% for commit in commits %}
+- {{ commit.message | trim }}\
+{% if commit.breaking %} ⚠ BREAKING{% endif %}
+{% endfor %}
+{% endfor %}
+"""
+trim = true
+
 [git]
-conventional_commits = false
-tag_prefix = ""
-ignore_merge_commits = true
-
-[output]
-file = "CHANGELOG.md"
-
-[parser]
-allow_unconventional = true
-
-[sections]
-feat = { title = "Features", kind = "feat" }
-fix  = { title = "Bug Fixes", kind = "fix" }
-chore = { title = "Chores", kind = "chore" }
-docs  = { title = "Documentation", kind = "docs" }
+conventional_commits = true
+filter_unconventional = true
+commit_parsers = [
+  { message = "^feat",     group = "Features"        },
+  { message = "^fix",      group = "Bug Fixes"       },
+  { message = "^perf",     group = "Performance"     },
+  { message = "^refactor", group = "Refactoring"     },
+  { message = "^docs",     group = "Documentation"   },
+  { message = "^chore",    group = "Chores"          },
+  { message = "^ci",       skip = true               },
+  { message = "^style",    skip = true               },
+]
+filter_commits = true
+tag_pattern = "v[0-9].*"
+sort_commits = "newest"

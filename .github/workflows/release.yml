@@ -1,18 +1,14 @@
 name: Build & Release
-
 on:
   push:
     tags:
       - "v*.*.*"
-
 permissions:
   contents: write
-
 jobs:
   build:
     name: Build binaries
     runs-on: ${{ matrix.os }}
-
     strategy:
       matrix:
         include:
@@ -28,7 +24,6 @@ jobs:
             target: windows
             bin: md-preview
             ext: ".exe"
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -45,16 +40,14 @@ jobs:
       - name: Build release binary
         run: cargo build --release
 
-      - name: Prepare dist
-        run: mkdir -p dist
-
       - name: Strip binary (Linux/macOS)
         if: matrix.os != 'windows-latest'
         run: strip target/release/${{ matrix.bin }}
 
-      - name: Rename binary for release
+      - name: Prepare dist and rename binary
         shell: bash
         run: |
+          mkdir -p dist
           cp target/release/${{ matrix.bin }}${{ matrix.ext }} \
              dist/${{ matrix.bin }}-${{ env.VERSION }}-${{ matrix.target }}${{ matrix.ext }}
 
@@ -68,36 +61,36 @@ jobs:
     name: Create Release
     needs: build
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      # 🔹 Delete previous assets for this tag
+      - name: Install git-cliff
+        uses: taiki-e/install-action@v2
+        with:
+          tool: git-cliff
+
+      - name: Generate release notes
+        run: git-cliff --current --strip header -o release_notes.md
+
       - name: Delete previous release assets
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
           delete_assets: true
 
-      - name: Clean dist folder
-        run: rm -rf dist
-
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
           path: dist
-
-      - name: List artifacts (debug)
-        run: ls -R dist
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
           name: ${{ github.ref_name }}
-          body: "Release ${{ github.ref_name }}"
+          body_path: release_notes.md
           files: dist/**/*
           overwrite_files: true
