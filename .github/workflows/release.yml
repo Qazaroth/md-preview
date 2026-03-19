@@ -46,8 +46,7 @@ jobs:
         run: cargo build --release
 
       - name: Prepare dist
-        run: |
-          mkdir -p dist
+        run: mkdir -p dist
 
       - name: Strip binary (Linux/macOS)
         if: matrix.os != 'windows-latest'
@@ -57,7 +56,7 @@ jobs:
         shell: bash
         run: |
           cp target/release/${{ matrix.bin }}${{ matrix.ext }} \
-            dist/${{ matrix.bin }}-${{ env.VERSION }}-${{ matrix.target }}${{ matrix.ext }}
+             dist/${{ matrix.bin }}-${{ env.VERSION }}-${{ matrix.target }}${{ matrix.ext }}
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -76,15 +75,23 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Clean dist folder
+        run: rm -rf dist
+
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
           path: dist
 
-      - name: Create Release
+      - name: Debug dist (optional)
+        shell: bash
+        run: ls -R dist
+
+      - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
           name: Release ${{ github.ref_name }}
           body: "Release ${{ github.ref_name }}"
           files: dist/**/*
+          overwrite_files: true
