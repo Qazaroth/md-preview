@@ -98,6 +98,8 @@ jobs:
       - name: Load changelog into env
         run: |
           echo "CHANGELOG<<EOF" >> $GITHUB_ENV
+          echo "# Release Notes" >> $GITHUB_ENV
+          echo "" >> $GITHUB_ENV
           cat CHANGELOG.md >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
 
