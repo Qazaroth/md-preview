@@ -49,7 +49,6 @@ jobs:
 
       - name: Rename binary for release
         run: |
-          mkdir -p dist
           # Add version to filename
           cp target/release/${{ matrix.bin }} dist/${{ matrix.bin }}-${VERSION}-${{ matrix.os }}
 
