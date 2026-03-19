@@ -18,7 +18,7 @@ pub struct Args {
 
     /// Keep the temporary preview file after exit
     #[arg(long)]
-    pub save: bool,
+    pub save: Option<bool>,
 
     /// Print extra diagnostic output
     #[arg(long)]
@@ -26,11 +26,15 @@ pub struct Args {
 
     /// Theme to use: "light" (default), "dark" or "github"
     #[arg(long, default_value = "light")]
-    pub theme: String,
+    pub theme: Option<String>,
 
     /// Path to a custom CSS file (overrides --theme)
     #[arg(long)]
     pub css: Option<PathBuf>,
+
+    /// Output filename for the preview HTML
+    #[arg(long)]
+    pub output: Option<String>,
 }
 
 pub fn parse_args() -> Result<Args, Box<dyn Error>> {

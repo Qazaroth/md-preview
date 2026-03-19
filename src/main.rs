@@ -1,5 +1,6 @@
 mod args;
 mod browser;
+mod config;
 mod markdown;
 
 use notify::{Config, EventKind, RecommendedWatcher, RecursiveMode, Watcher};
@@ -45,15 +46,29 @@ impl Drop for TempPreview {
 // Core logic helpers
 // ---------------------------------------------------------------------------
 
-fn resolve_css(args: &args::Args) -> Result<String, Box<dyn Error>> {
+fn resolve_css(args: &args::Args, config: &config::Config) -> Result<String, Box<dyn Error>> {
     if let Some(path) = &args.css {
         return Ok(fs::read_to_string(path)?);
     }
-    Ok(match args.theme.as_str() {
+
+    let theme = args
+        .theme
+        .as_deref()
+        .or(config.theme.as_deref())
+        .unwrap_or("light");
+
+    Ok(match theme {
         "dark" => CSS_DARK.to_string(),
         "github" => CSS_GIT.to_string(),
         _ => CSS_LIGHT.to_string(),
     })
+}
+
+fn resolve_output_filename(args: &args::Args, config: &config::Config) -> String {
+    args.output
+        .clone()
+        .or_else(|| config.output_filename.clone())
+        .unwrap_or_else(|| "preview.html".to_string())
 }
 
 /// Render a Markdown file to a full HTML page.
@@ -92,12 +107,14 @@ fn watch_file(src: &Path, dest: &Path, css: &str) -> Result<(), Box<dyn Error>> 
 
 fn main() -> Result<(), Box<dyn Error>> {
     let args = args::parse_args()?;
+    let config = config::Config::load();
 
     if args.verbose {
         println!("{args:?}");
+        println!("{config:?}");
     }
 
-    let css = resolve_css(&args)?;
+    let css = resolve_css(&args, &config)?;
 
     // --no-open: print HTML to stdout and exit immediately.
     if args.no_open {
@@ -106,11 +123,14 @@ fn main() -> Result<(), Box<dyn Error>> {
         return Ok(());
     }
 
-    let html = render_markdown_file(&args.file, &css)?;
-    let preview_path = browser::open_html_and_wait(&html)?;
+    let filename = resolve_output_filename(&args, &config);
+    let save = args.save.or(config.save).unwrap_or(false);
 
-    // `preview` deletes the file on drop (unless --save was passed).
-    let preview = Arc::new(TempPreview::new(preview_path.clone(), args.save));
+    let html = render_markdown_file(&args.file, &css)?;
+    let preview_path = browser::open_html_and_wait(&html, &filename)?;
+
+    // `preview` deletes the file on drop (unless --save was set).
+    let preview = Arc::new(TempPreview::new(preview_path.clone(), save));
 
     // Mirror the same cleanup in the Ctrl-C handler so the file is removed
     // even when the process is interrupted before `preview` drops normally.

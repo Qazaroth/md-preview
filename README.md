@@ -11,7 +11,9 @@ Built as a learning project. See [ROADMAP](ROADMAP.md) for planned features and 
 - Renders Markdown to HTML and opens it in your default browser
 - Live reload on file save (`--watch`)
 - Prints raw HTML to stdout (`--no-open`)
-- Optionally keeps the generated preview file (`--save`)
+- Built-in light, dark, and GitHub themes (`--theme`)
+- User-supplied CSS stylesheet support (`--css`)
+- Persistent config file for default preferences
 
 ## Installation
 
@@ -20,7 +22,7 @@ Built as a learning project. See [ROADMAP](ROADMAP.md) for planned features and 
 Alternatively, build from source:
 
 ```bash
-git clone https://github.com/your-username/md-previewer
+git clone https://github.com/qazaroth/md-previewer
 cd md-previewer
 cargo build --release
 ```
@@ -39,7 +41,16 @@ md-previewer --file README.md --watch
 # Print HTML to stdout
 md-previewer --file README.md --no-open
 
-# Keep the generated preview.html after exit
+# Use the dark theme
+md-previewer --file README.md --theme dark
+
+# Use a custom CSS file
+md-previewer --file README.md --css ./my-style.css
+
+# Set a custom output filename
+md-previewer --file README.md --output my-preview.html
+
+# Keep the generated preview file after exit
 md-previewer --file README.md --save
 ```
 
@@ -50,10 +61,32 @@ md-previewer --file README.md --save
 | `--file <PATH>` | Path to the Markdown file *(required)* |
 | `--watch` | Re-render on every file save |
 | `--no-open` | Print HTML to stdout instead of opening a browser |
-| `--save` | Keep the temporary `preview.html` after exit |
+| `--theme <THEME>` | Preview theme: `light` (default), `dark`, or `github` |
+| `--css <PATH>` | Path to a custom CSS file (overrides `--theme`) |
+| `--output <NAME>` | Output filename for the preview file (default: `preview.html`) |
+| `--save` | Keep the preview file after exit |
 | `--verbose` | Print diagnostic output |
-| `--theme` | Specifies the theme of the preview |
-| `--css` | Specifies your own custom css theme |
+
+## Configuration
+
+You can set default preferences in a config file to avoid repeating flags every time.
+
+**Locations** (local takes priority over global):
+- Local: `.md-previewer.toml` in the current directory
+- Global: platform config directory (resolved automatically)
+  - Linux: `~/.config/md-previewer/config.toml`
+  - macOS: `~/Library/Application Support/md-previewer/config.toml`
+  - Windows: `%APPDATA%\md-previewer\config.toml`
+
+**Example config:**
+
+```toml
+theme = "dark"
+output_filename = "my-preview.html"
+save = true
+```
+
+**Priority order:** CLI flag → local config → global config → built-in default.
 
 ## Built With
 
@@ -62,6 +95,8 @@ md-previewer --file README.md --save
 - [`notify`](https://github.com/notify-rs/notify) — File watching
 - [`webbrowser`](https://github.com/amodm/webbrowser-rs) — Opening the browser
 - [`ctrlc`](https://github.com/Detegr/rust-ctrlc) — Ctrl-C handling
+- [`serde`](https://github.com/serde-rs/serde) + [`toml`](https://github.com/toml-rs/toml) — Config file parsing
+- [`dirs`](https://github.com/dirs-dev/dirs-rs) — Platform config directory resolution
 
 ## Acknowledgements
 
@@ -69,4 +104,4 @@ AI tooling (Claude) was used as an assistance tool during development — for co
 
 ## License
 
-MIT
+[Apache](LICENSE.txt)

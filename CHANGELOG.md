@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Documentation
+
+- Changed license to Apache, updated ROADMAP and README
+
+- Update CHANGELOG.md for v0.6.0
+
 ## v0.6.0 - 2026-03-19
 
 ### Documentation
