@@ -52,7 +52,7 @@ Build a fast and minimal Markdown previewer using Rust, then progressively enhan
 **Goal:** Real-time preview updates
 
 ### Tasks
-- [x] Watch file changes (`notify` crate)
+- [x] Watch filse changes (`notify` crate)
 - [x] Rebuild HTML on file save
 - [x] Auto-refresh browser
 - [ ] Add `--watch` flag

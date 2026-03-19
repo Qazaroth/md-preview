@@ -5,6 +5,7 @@ edition = "2024"
 
 [dependencies]
 clap = { version = "4.6.0", features = ["derive"] }
+ctrlc = "3.5.2"
 notify = "8.2.0"
 pulldown-cmark = "0.13.1"
 rand = "0.10.0"

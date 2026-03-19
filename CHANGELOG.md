@@ -1,9 +1,29 @@
+## [unreleased]
+
+### 🚀 Features
+
+- Feat: notify implemented, rebuild html on save, auto-refresh browser
 ## [0.4.0] - 2026-03-19
 
 ### 🚀 Features
 
 - Feat: Output temp html file now
 - Feat: Phase 3 done
+
+### 🐛 Bug Fixes
+
+- Fixed workflow hopefully again
+
+### 💼 Other
+
+- Changelogs updated for v0.4.0
+- Workflow creates dist now
+- Removed dist creation dupes
+- More changes to release.yml
+- Changed file output name for binary
+- Removed duplicates from release
+- Hopefully this removes dupes
+- Please
 ## [0.3.0] - 2026-03-19
 
 ### 🐛 Bug Fixes

@@ -1,15 +1,21 @@
 use std::error::Error;
-use std::io::Write;
-use tempfile::NamedTempFile;
+use std::fs;
+use std::path::PathBuf;
 
-pub fn open_html_and_wait(html: &str) -> Result<NamedTempFile, Box<dyn Error>> {
-    let mut file = NamedTempFile::new()?;
-    write!(file, "{}", html)?;
+pub fn open_html_and_wait(html: &str, delete_after: bool) -> Result<PathBuf, Box<dyn Error>> {
+    let preview_path = PathBuf::from("preview.html");
 
-    let path = file.path().to_str().unwrap().to_string();
+    fs::write(&preview_path, html)?;
 
-    webbrowser::open(&path)?;
+    webbrowser::open(preview_path.to_str().unwrap())?;
 
-    // file auto-deletes here
-    Ok(file)
+    if delete_after {
+        let path_clone = preview_path.clone();
+        ctrlc::set_handler(move || {
+            let _ = std::fs::remove_file(&path_clone);
+            std::process::exit(0);
+        })?;
+    }
+
+    Ok(preview_path)
 }

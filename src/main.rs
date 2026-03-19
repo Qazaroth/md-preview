@@ -16,19 +16,20 @@ fn watch_file(path: &std::path::Path) -> Result<(), Box<dyn Error>> {
 
     println!("Watching {} for changes...", path.display());
 
+    let markdown_input = markdown::read_markdown(path)?;
+    let html_output = markdown::markdown_to_html(&markdown_input);
+    let preview_path = browser::open_html_and_wait(&html_output, true)?;
+
     loop {
         match rx.recv() {
             Ok(event) => {
-                // Only respond to modifications
                 if let EventKind::Modify(_) = event.unwrap().kind {
-                    println!("File changed! Regenerating HTML...");
+                    println!("File changed| Regenerating HTML...");
 
                     let markdown_input = markdown::read_markdown(path)?;
                     let html_output = markdown::markdown_to_html(&markdown_input);
 
-                    let _temp_file = browser::open_html_and_wait(&html_output)?;
-
-                    std::thread::sleep(std::time::Duration::from_secs(10));
+                    std::fs::write(&preview_path, html_output)?;
                 }
             }
             Err(e) => eprintln!("Watch error: {:?}", e),
