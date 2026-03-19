@@ -13,14 +13,25 @@ allow_unconventional = true
 body = """
 Release {{ version | trim_start_matches(pat="v") }} - {{ timestamp | date(format="%Y-%m-%d") }}
 
-{% for group, commits in commits | group_by(attribute="group") if commits | length > 0 %}
+{% for group, commits in commits | group_by(attribute="group") %}
+{% if commits | length > 0 %}
 ### {{ group }}
 
 {% for commit in commits %}
 - {{ commit.message }}
 {% endfor %}
 
+{% endif %}
 {% endfor %}
+
+{% set ungrouped = commits | selectattr("group", "equalto", "") | list %}
+{% if ungrouped | length > 0 %}
+### Other Changes
+
+{% for commit in ungrouped %}
+- {{ commit.message }}
+{% endfor %}
+{% endif %}
 """
 
 [sections]
