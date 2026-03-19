@@ -52,6 +52,8 @@ md-previewer --file README.md --save
 | `--no-open` | Print HTML to stdout instead of opening a browser |
 | `--save` | Keep the temporary `preview.html` after exit |
 | `--verbose` | Print diagnostic output |
+| `--theme` | Specifies the theme of the preview |
+| `--css` | Specifies your own custom css theme |
 
 ## Built With
 

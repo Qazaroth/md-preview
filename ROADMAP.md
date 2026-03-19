@@ -91,12 +91,12 @@ A fast, minimal Rust CLI to preview Markdown files as HTML in the browser.
 
 **Goal:** Make it production-ready and publicly available.
 
-- [ ] Write a comprehensive `README.md` with badges and usage examples
+- [x] Write a comprehensive `README.md` with badges and usage examples
 - [ ] Record a demo GIF using `vhs` or `asciinema`
 - [x] Add `.gitignore`
 - [x] Build release binaries (`cargo build --release`)
-- [ ] Publish on GitHub Releases with prebuilt binaries for major platforms
-- [ ] Submit to `crates.io`
+- [x] Publish on GitHub Releases with prebuilt binaries for major platforms
+- [ ] ~~Submit to `crates.io`~~ *(not planned)*
 
 ---
 
