@@ -1,8 +1,9 @@
-## [unreleased]
+## [0.4.0] - 2026-03-19
 
 ### 🚀 Features
 
 - Feat: Output temp html file now
+- Feat: Phase 3 done
 ## [0.3.0] - 2026-03-19
 
 ### 🐛 Bug Fixes
