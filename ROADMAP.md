@@ -69,10 +69,10 @@ A fast, minimal Rust CLI to preview Markdown files as HTML in the browser.
 
 **Goal:** Make previews look good out of the box.
 
-- [ ] Embed a tasteful default CSS stylesheet
-- [ ] Support `--theme dark | light` flag
-- [ ] Ship a GitHub-flavored Markdown theme
-- [ ] Allow a user-supplied stylesheet via `--css <path>`
+- [x] Embed a tasteful default CSS stylesheet
+- [x] Support `--theme dark | light` flag
+- [x] Ship a GitHub-flavored Markdown theme
+- [x] Allow a user-supplied stylesheet via `--css <path>`
 
 ---
 

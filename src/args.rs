@@ -23,6 +23,14 @@ pub struct Args {
     /// Print extra diagnostic output
     #[arg(long)]
     pub verbose: bool,
+
+    /// Theme to use: "light" (default), "dark" or "github"
+    #[arg(long, default_value = "light")]
+    pub theme: String,
+
+    /// Path to a custom CSS file (overrides --theme)
+    #[arg(long)]
+    pub css: Option<PathBuf>,
 }
 
 pub fn parse_args() -> Result<Args, Box<dyn Error>> {

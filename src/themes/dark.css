@@ -1,0 +1,141 @@
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+body {
+    background: #0d1117;
+    color: #e6edf3;
+    font-family:
+        -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial,
+        sans-serif;
+    font-size: 16px;
+    line-height: 1.7;
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 0 1.5rem;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    color: #f0f6fc;
+    font-weight: 600;
+    line-height: 1.3;
+    margin: 1.8rem 0 0.6rem;
+}
+
+h1 {
+    font-size: 2rem;
+    border-bottom: 1px solid #30363d;
+    padding-bottom: 0.3rem;
+}
+h2 {
+    font-size: 1.5rem;
+    border-bottom: 1px solid #30363d;
+    padding-bottom: 0.3rem;
+}
+h3 {
+    font-size: 1.25rem;
+}
+
+a {
+    color: #58a6ff;
+    text-decoration: none;
+}
+a:hover {
+    text-decoration: underline;
+}
+
+p {
+    margin: 0.8rem 0;
+}
+
+code {
+    background: #161b22;
+    color: #ff7b72;
+    font-family:
+        "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    font-size: 0.875em;
+    padding: 2px 5px;
+    border-radius: 4px;
+    border: 1px solid #30363d;
+}
+
+pre {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    overflow-x: auto;
+    padding: 1rem 1.25rem;
+}
+
+pre code {
+    background: none;
+    border: none;
+    color: inherit;
+    font-size: 0.9em;
+    padding: 0;
+}
+
+blockquote {
+    border-left: 4px solid #3d444d;
+    color: #8b949e;
+    margin: 1rem 0;
+    padding: 0.25rem 1rem;
+}
+
+blockquote p {
+    margin: 0.3rem 0;
+}
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 1rem 0;
+}
+
+th,
+td {
+    border: 1px solid #30363d;
+    padding: 0.5rem 0.75rem;
+    text-align: left;
+}
+
+th {
+    background: #161b22;
+    font-weight: 600;
+}
+
+tr:nth-child(even) td {
+    background: #111318;
+}
+
+img {
+    max-width: 100%;
+    border-radius: 4px;
+}
+
+hr {
+    border: none;
+    border-top: 1px solid #30363d;
+    margin: 2rem 0;
+}
+
+ul,
+ol {
+    padding-left: 1.5rem;
+    margin: 0.8rem 0;
+}
+
+li {
+    margin: 0.3rem 0;
+}
+
+input[type="checkbox"] {
+    margin-right: 0.4rem;
+}
