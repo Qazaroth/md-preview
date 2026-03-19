@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Chores
+
+- add unit tests for markdown module
+
+
 ### Documentation
 
 - ROADMAP is now actually up-to-date
