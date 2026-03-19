@@ -8,6 +8,11 @@
 
 - Update CHANGELOG.md for v0.6.0
 
+
+### Features
+
+- config file available
+
 ## v0.6.0 - 2026-03-19
 
 ### Documentation
