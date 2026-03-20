@@ -23,6 +23,7 @@ pub fn render_folder(
     dir: &Path,
     css: &str,
     build_toc: bool,
+    verbose: bool,
 ) -> Result<Vec<RenderedFile>, Box<dyn Error>> {
     let mut files = Vec::new();
 
@@ -41,7 +42,7 @@ pub fn render_folder(
             .to_string();
         let id = slugify(&name);
         let markdown = fs::read_to_string(&path)?;
-        let html = markdown::markdown_to_html(&markdown, css, build_toc);
+        let html = markdown::markdown_to_html(&markdown, css, build_toc, verbose);
 
         files.push(RenderedFile { name, id, html });
     }

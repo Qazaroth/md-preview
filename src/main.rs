@@ -80,9 +80,16 @@ fn resolve_output_filename(args: &args::Args, config: &config::Config) -> String
 }
 
 /// Render a Markdown file to a full HTML page.
-fn render_markdown_file(path: &Path, css: &str, build_toc: bool) -> Result<String, Box<dyn Error>> {
+fn render_markdown_file(
+    path: &Path,
+    css: &str,
+    build_toc: bool,
+    verbose: bool,
+) -> Result<String, Box<dyn Error>> {
     let markdown = markdown::read_markdown(path)?;
-    Ok(markdown::markdown_to_html(&markdown, css, build_toc))
+    Ok(markdown::markdown_to_html(
+        &markdown, css, build_toc, verbose,
+    ))
 }
 
 /// Watch `src` for modifications and re-write the rendered HTML to `dest`
@@ -105,7 +112,7 @@ fn watch_file(
             Ok(ev) if matches!(ev.kind, EventKind::Modify(_)) => {
                 println!("File changed — regenerating HTML…");
                 verbose!(verbose, "event: {ev:?}");
-                let html = render_markdown_file(src, css, build_toc)?;
+                let html = render_markdown_file(src, css, build_toc, verbose)?;
                 verbose!(verbose, "rendered {} bytes", html.len());
                 fs::write(dest, html)?;
                 verbose!(verbose, "wrote to: {}", dest.display());
@@ -158,7 +165,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     // --- Directory mode ---
     if path.is_dir() {
-        let files = folder::render_folder(&path, &css, args.toc)?;
+        let files = folder::render_folder(&path, &css, args.toc, args.verbose)?;
         if files.is_empty() {
             return Err("No Markdown files found in directory.".into());
         }
@@ -185,13 +192,13 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     // --no-open: print HTML to stdout and exit immediately.
     if args.no_open {
-        let html = render_markdown_file(&path, &css, args.toc)?;
+        let html = render_markdown_file(&path, &css, args.toc, args.verbose)?;
         verbose!(args.verbose, "rendered {} bytes of HTML", html.len());
         println!("{html}");
         return Ok(());
     }
 
-    let html = render_markdown_file(&path, &css, args.toc)?;
+    let html = render_markdown_file(&path, &css, args.toc, args.verbose)?;
     verbose!(args.verbose, "rendered {} bytes of HTML", html.len());
 
     let preview_path = browser::open_html_and_wait(&html, &filename)?;

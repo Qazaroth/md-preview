@@ -1,6 +1,12 @@
 use pulldown_cmark::{Options, Parser, html};
 use std::{error::Error, fs, path::Path};
 
+macro_rules! verbose {
+    ($verbose:expr, $($arg:tt)*) => {
+        if $verbose { eprintln!("[verbose] {}", format!($($arg)*)); }
+    };
+}
+
 struct Heading {
     level: u8,
     text: String,
@@ -8,10 +14,10 @@ struct Heading {
 }
 
 fn has_toc(html: &str) -> bool {
-    // Look for a heading that suggests a TOC already exists
-    let markers = ["table of contents", "contents", "toc"];
     let lower = html.to_lowercase();
-    markers.iter().any(|m| lower.contains(m))
+    ["id=\"table-of-contents\"", "id=\"contents\"", "id=\"toc\""]
+        .iter()
+        .any(|m| lower.contains(m))
 }
 
 fn extract_headings(html: &str) -> Vec<Heading> {
@@ -88,19 +94,25 @@ pub fn read_markdown(path: &Path) -> Result<String, Box<dyn Error>> {
     Ok(fs::read_to_string(path)?)
 }
 
-pub fn markdown_to_html(input: &str, css: &str, need_toc: bool) -> String {
+pub fn markdown_to_html(input: &str, css: &str, need_toc: bool, verbose: bool) -> String {
     let parser = Parser::new_ext(input, Options::all());
     let mut body = String::with_capacity(input.len() * 2);
     html::push_html(&mut body, parser);
-
     let mut body = inject_heading_ids(&body);
 
     if need_toc {
+        verbose!(
+            verbose,
+            "checking for existing TOC: has_toc={}",
+            has_toc(&body)
+        );
         body = if !has_toc(&body) {
             let headings = extract_headings(&body);
+            verbose!(verbose, "extracted {} headings", headings.len());
             let toc = build_toc(&headings);
             inject_toc(&body, &toc)
         } else {
+            verbose!(verbose, "skipping TOC — one already exists");
             body.to_string()
         };
     }
@@ -220,8 +232,22 @@ mod tests {
 
     #[test]
     fn test_markdown_renders_heading() {
-        let html = markdown_to_html("# Title", "");
+        let html = markdown_to_html("# Title", "", true, false);
         assert!(html.contains("<h1"));
         assert!(html.contains("Title"));
+    }
+
+    #[test]
+    fn test_has_toc_not_fooled_by_table() {
+        let html = "<table><th>Flag</th><th>Description</th></table>";
+        assert!(!has_toc(html));
+    }
+
+    #[test]
+    fn test_has_toc_detects_real_toc() {
+        let html = inject_heading_ids("<h2>Table of Contents</h2>");
+        eprintln!("inject_heading_ids output: {html}");
+        eprintln!("has_toc result: {}", has_toc(&html));
+        assert!(has_toc(&html));
     }
 }
