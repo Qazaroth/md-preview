@@ -53,6 +53,19 @@ impl Drop for TempPreview {
 // Core logic helpers
 // ---------------------------------------------------------------------------
 
+fn resolve_template(
+    args: &args::Args,
+    config: &config::Config,
+) -> Result<Option<String>, Box<dyn Error>> {
+    if let Some(path) = &args.template {
+        return Ok(Some(fs::read_to_string(path)?));
+    }
+    if let Some(path) = &config.template {
+        return Ok(Some(fs::read_to_string(path)?));
+    }
+    Ok(None)
+}
+
 fn resolve_css(args: &args::Args, config: &config::Config) -> Result<String, Box<dyn Error>> {
     if let Some(path) = &args.css {
         verbose!(args.verbose, "using custom CSS from: {}", path.display());
@@ -79,16 +92,24 @@ fn resolve_output_filename(args: &args::Args, config: &config::Config) -> String
         .unwrap_or_else(|| "preview.html".to_string())
 }
 
+fn title_from_path(path: &Path) -> &str {
+    path.file_stem()
+        .and_then(|s| s.to_str())
+        .unwrap_or("Preview")
+}
+
 /// Render a Markdown file to a full HTML page.
 fn render_markdown_file(
     path: &Path,
     css: &str,
     build_toc: bool,
     verbose: bool,
+    template: Option<&str>,
 ) -> Result<String, Box<dyn Error>> {
     let markdown = markdown::read_markdown(path)?;
+    let title = title_from_path(path);
     Ok(markdown::markdown_to_html(
-        &markdown, css, build_toc, verbose,
+        &markdown, css, build_toc, verbose, template, title,
     ))
 }
 
@@ -100,6 +121,7 @@ fn watch_file(
     css: &str,
     verbose: bool,
     build_toc: bool,
+    template: Option<&str>,
 ) -> Result<(), Box<dyn Error>> {
     let (tx, rx) = channel();
     let mut watcher: RecommendedWatcher = Watcher::new(tx, Config::default())?;
@@ -112,7 +134,7 @@ fn watch_file(
             Ok(ev) if matches!(ev.kind, EventKind::Modify(_)) => {
                 println!("File changed — regenerating HTML…");
                 verbose!(verbose, "event: {ev:?}");
-                let html = render_markdown_file(src, css, build_toc, verbose)?;
+                let html = render_markdown_file(src, css, build_toc, verbose, template)?;
                 verbose!(verbose, "rendered {} bytes", html.len());
                 fs::write(dest, html)?;
                 verbose!(verbose, "wrote to: {}", dest.display());
@@ -156,6 +178,9 @@ fn main() -> Result<(), Box<dyn Error>> {
         .unwrap_or("light");
     verbose!(args.verbose, "theme:           {theme}");
 
+    let template = resolve_template(&args, &config)?;
+    let template_ref = template.as_deref();
+
     let filename = resolve_output_filename(&args, &config);
     let save = args.save.or(config.save).unwrap_or(false);
     verbose!(args.verbose, "output filename: {filename}");
@@ -165,7 +190,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     // --- Directory mode ---
     if path.is_dir() {
-        let files = folder::render_folder(&path, &css, args.toc, args.verbose)?;
+        let files = folder::render_folder(&path, &css, args.toc, args.verbose, template_ref)?;
         if files.is_empty() {
             return Err("No Markdown files found in directory.".into());
         }
@@ -182,7 +207,6 @@ fn main() -> Result<(), Box<dyn Error>> {
         let preview = Arc::new(TempPreview::new(preview_path, save));
         setup_ctrlc(&preview, args.verbose)?;
 
-        // Park the thread — nothing else to do in folder mode
         loop {
             std::thread::sleep(std::time::Duration::from_secs(60));
         }
@@ -192,13 +216,13 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     // --no-open: print HTML to stdout and exit immediately.
     if args.no_open {
-        let html = render_markdown_file(&path, &css, args.toc, args.verbose)?;
+        let html = render_markdown_file(&path, &css, args.toc, args.verbose, template_ref)?;
         verbose!(args.verbose, "rendered {} bytes of HTML", html.len());
         println!("{html}");
         return Ok(());
     }
 
-    let html = render_markdown_file(&path, &css, args.toc, args.verbose)?;
+    let html = render_markdown_file(&path, &css, args.toc, args.verbose, template_ref)?;
     verbose!(args.verbose, "rendered {} bytes of HTML", html.len());
 
     let preview_path = browser::open_html_and_wait(&html, &filename)?;
@@ -212,7 +236,14 @@ fn main() -> Result<(), Box<dyn Error>> {
     setup_ctrlc(&preview, args.verbose)?;
 
     if args.watch {
-        watch_file(&path, &preview_path, &css, args.verbose, args.toc)?;
+        watch_file(
+            &path,
+            &preview_path,
+            &css,
+            args.verbose,
+            args.toc,
+            template_ref,
+        )?;
     }
 
     Ok(())

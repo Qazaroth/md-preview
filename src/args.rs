@@ -39,6 +39,10 @@ pub struct Args {
     /// Auto-generate a table of contents
     #[arg(long)]
     pub toc: bool,
+
+    /// Path to a custom HTML template file
+    #[arg(long)]
+    pub template: Option<PathBuf>,
 }
 
 pub fn parse_args() -> Result<Args, Box<dyn Error>> {

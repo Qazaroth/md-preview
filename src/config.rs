@@ -6,6 +6,7 @@ pub struct Config {
     pub output_filename: Option<String>,
     pub theme: Option<String>,
     pub save: Option<bool>,
+    pub template: Option<String>,
 }
 
 impl Config {

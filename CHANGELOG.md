@@ -9,6 +9,8 @@
 
 ### Chores
 
+- CHANGELOG now shows datetime *(2026-03-20 12:02)*
+
 - added bug report template *(2026-03-19 18:52)*
 
 - add unit tests for markdown module *(2026-03-19 18:50)*

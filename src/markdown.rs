@@ -5,11 +5,30 @@ use syntect::{highlighting::ThemeSet, html::highlighted_html_for_string, parsing
 
 static SYNTAX_SET: OnceLock<SyntaxSet> = OnceLock::new();
 static THEME_SET: OnceLock<ThemeSet> = OnceLock::new();
+const DEFAULT_TEMPLATE: &str = r#"<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{title}}</title>
+  <style>{{css}}</style>
+</head>
+<body>
+{{content}}
+</body>
+</html>"#;
 
 macro_rules! verbose {
     ($verbose:expr, $($arg:tt)*) => {
         if $verbose { eprintln!("[verbose] {}", format!($($arg)*)); }
     };
+}
+
+pub fn apply_template(template: &str, content: &str, css: &str, title: &str) -> String {
+    template
+        .replace("{{content}}", content)
+        .replace("{{css}}", css)
+        .replace("{{title}}", title)
 }
 
 fn highlight_code_blocks(html: &str, verbose: bool) -> String {
@@ -189,43 +208,31 @@ pub fn read_markdown(path: &Path) -> Result<String, Box<dyn Error>> {
     Ok(fs::read_to_string(path)?)
 }
 
-pub fn markdown_to_html(input: &str, css: &str, need_toc: bool, verbose: bool) -> String {
+pub fn markdown_to_html(
+    input: &str,
+    css: &str,
+    need_toc: bool,
+    verbose: bool,
+    template: Option<&str>,
+    title: &str,
+) -> String {
     let parser = Parser::new_ext(input, Options::all());
     let mut body = String::with_capacity(input.len() * 2);
     html::push_html(&mut body, parser);
     let mut body = inject_heading_ids(&body);
-    body = highlight_code_blocks(&body, verbose);
+    let body = highlight_code_blocks(&body, verbose);
 
-    if need_toc {
-        verbose!(
-            verbose,
-            "checking for existing TOC: has_toc={}",
-            has_toc(&body)
-        );
-        body = if !has_toc(&body) {
-            let headings = extract_headings(&body);
-            verbose!(verbose, "extracted {} headings", headings.len());
-            let toc = build_toc(&headings);
-            inject_toc(&body, &toc)
-        } else {
-            verbose!(verbose, "skipping TOC — one already exists");
-            body.to_string()
-        };
-    }
+    let body = if need_toc && !has_toc(&body) {
+        let headings = extract_headings(&body);
+        verbose!(verbose, "extracted {} headings", headings.len());
+        let toc = build_toc(&headings);
+        inject_toc(&body, &toc)
+    } else {
+        body
+    };
 
-    format!(
-        r#"<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>{css}</style>
-</head>
-<body>
-{body}
-</body>
-</html>"#
-    )
+    let tmpl = template.unwrap_or(DEFAULT_TEMPLATE);
+    apply_template(tmpl, &body, css, title)
 }
 
 fn inject_heading_ids(html: &str) -> String {
@@ -328,7 +335,7 @@ mod tests {
 
     #[test]
     fn test_markdown_renders_heading() {
-        let html = markdown_to_html("# Title", "", true, false);
+        let html = markdown_to_html("# Title", "", false, false, None, "test");
         assert!(html.contains("<h1"));
         assert!(html.contains("Title"));
     }

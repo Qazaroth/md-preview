@@ -2,9 +2,9 @@ use crate::markdown;
 use std::{error::Error, fs, path::Path};
 
 pub struct RenderedFile {
-    pub name: String, // display name
-    pub id: String,   // used as HTML id
-    pub html: String, // well, the html
+    pub name: String,
+    pub id: String,
+    pub html: String,
 }
 
 fn slugify(text: &str) -> String {
@@ -24,6 +24,7 @@ pub fn render_folder(
     css: &str,
     build_toc: bool,
     verbose: bool,
+    template: Option<&str>,
 ) -> Result<Vec<RenderedFile>, Box<dyn Error>> {
     let mut files = Vec::new();
 
@@ -40,9 +41,10 @@ pub fn render_folder(
             .and_then(|s| s.to_str())
             .unwrap_or("untitled")
             .to_string();
+
         let id = slugify(&name);
         let markdown = fs::read_to_string(&path)?;
-        let html = markdown::markdown_to_html(&markdown, css, build_toc, verbose);
+        let html = markdown::markdown_to_html(&markdown, css, build_toc, verbose, template, &name);
 
         files.push(RenderedFile { name, id, html });
     }
