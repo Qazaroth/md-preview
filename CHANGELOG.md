@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased
+
+### Bug Fixes
+
+- resolve clippy warnings blocking CI *(2026-03-20 12:31)*
+
+
+### Documentation
+
+- Updated links in README so that they work *(2026-03-20 12:45)*
+
+- Updated README to include how to report bugs or give suggestions *(2026-03-20 12:35)*
+
 ## v0.7.0 - 2026-03-20
 
 ### Bug Fixes
@@ -44,6 +57,11 @@
 - Table of contents should work now in html *(2026-03-19 18:45)*
 
 - config file available *(2026-03-19 18:21)*
+
+
+### Other
+
+- Phase 6 done. Version 0.7.0 *(2026-03-20 12:27)*
 
 ## v0.6.0 - 2026-03-19
 
@@ -162,3 +180,4 @@
 - Added README *(2026-03-18 16:55)*
 
 - First commit *(2026-03-18 16:52)*
+

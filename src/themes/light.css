@@ -12,8 +12,17 @@ body {
         sans-serif;
     font-size: 16px;
     line-height: 1.7;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+body > * {
     max-width: 800px;
-    margin: 2rem auto;
+    margin-left: auto;
+    margin-right: auto;
     padding: 0 1.5rem;
 }
 
@@ -34,11 +43,13 @@ h1 {
     border-bottom: 1px solid #e0e0e0;
     padding-bottom: 0.3rem;
 }
+
 h2 {
     font-size: 1.5rem;
     border-bottom: 1px solid #e0e0e0;
     padding-bottom: 0.3rem;
 }
+
 h3 {
     font-size: 1.25rem;
 }
@@ -47,6 +58,7 @@ a {
     color: #0969da;
     text-decoration: none;
 }
+
 a:hover {
     text-decoration: underline;
 }
@@ -71,6 +83,8 @@ pre {
     border-radius: 6px;
     overflow-x: auto;
     padding: 1rem 1.25rem;
+    white-space: pre;
+    word-wrap: normal;
 }
 
 pre code {
@@ -95,6 +109,8 @@ table {
     border-collapse: collapse;
     width: 100%;
     margin: 1rem 0;
+    display: block;
+    overflow-x: auto;
 }
 
 th,
@@ -115,6 +131,7 @@ tr:nth-child(even) td {
 
 img {
     max-width: 100%;
+    height: auto;
     border-radius: 4px;
 }
 
@@ -146,15 +163,18 @@ input[type="checkbox"] {
     display: inline-block;
     min-width: 200px;
 }
+
 .toc h2 {
     font-size: 1rem;
     margin: 0 0 0.5rem;
     border: none;
 }
+
 .toc ul {
     margin: 0;
     padding-left: 1.25rem;
 }
+
 .toc li {
     margin: 0.2rem 0;
     font-size: 0.9rem;

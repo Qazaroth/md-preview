@@ -1,8 +1,8 @@
 mod args;
-mod browser;
 mod config;
 mod folder;
 mod markdown;
+mod server;
 
 use notify::{Config, EventKind, RecommendedWatcher, RecursiveMode, Watcher};
 use std::{
@@ -20,33 +20,6 @@ macro_rules! verbose {
     ($verbose:expr, $($arg:tt)*) => {
         if $verbose { eprintln!("[verbose] {}", format!($($arg)*)); }
     };
-}
-
-// ---------------------------------------------------------------------------
-// TempPreview — RAII guard that deletes the preview file on drop
-// ---------------------------------------------------------------------------
-
-pub struct TempPreview {
-    path: PathBuf,
-    save: bool,
-}
-
-impl TempPreview {
-    pub fn new(path: PathBuf, save: bool) -> Self {
-        Self { path, save }
-    }
-
-    fn cleanup(&self) {
-        if !self.save {
-            let _ = fs::remove_file(&self.path);
-        }
-    }
-}
-
-impl Drop for TempPreview {
-    fn drop(&mut self) {
-        self.cleanup();
-    }
 }
 
 // ---------------------------------------------------------------------------
@@ -85,13 +58,6 @@ fn resolve_css(args: &args::Args, config: &config::Config) -> Result<String, Box
     })
 }
 
-fn resolve_output_filename(args: &args::Args, config: &config::Config) -> String {
-    args.output
-        .clone()
-        .or_else(|| config.output_filename.clone())
-        .unwrap_or_else(|| "preview.html".to_string())
-}
-
 fn title_from_path(path: &Path) -> &str {
     path.file_stem()
         .and_then(|s| s.to_str())
@@ -113,20 +79,50 @@ fn render_markdown_file(
     ))
 }
 
-/// Watch `src` for modifications and re-write the rendered HTML to `dest`
-/// on every change.
-fn watch_file(
-    src: &Path,
-    dest: &Path,
-    css: &str,
+/// Save rendered HTML to disk if --save is set.
+fn save_html_if_needed(
+    html: &str,
+    args: &args::Args,
+    config: &config::Config,
     verbose: bool,
+) -> Result<(), Box<dyn Error>> {
+    let save = args.save.or(config.save).unwrap_or(false);
+    if !save {
+        return Ok(());
+    }
+    let save_path = args
+        .output
+        .clone()
+        .or_else(|| config.output_filename.clone())
+        .unwrap_or_else(|| "preview.html".to_string());
+    fs::write(&save_path, html)?;
+    println!("Saved HTML to: {save_path}");
+    verbose!(verbose, "saved {} bytes to {save_path}", html.len());
+    Ok(())
+}
+
+/// Watch `src` for file changes and push a reload via the server state.
+fn watch_and_serve(
+    src: &Path,
+    recursive: bool,
+    css: String,
     build_toc: bool,
-    template: Option<&str>,
+    verbose: bool,
+    template: Option<String>,
+    state: Arc<server::ServerState>,
+    is_dir: bool,
+    dir: Option<PathBuf>,
 ) -> Result<(), Box<dyn Error>> {
     let (tx, rx) = channel();
     let mut watcher: RecommendedWatcher = Watcher::new(tx, Config::default())?;
-    watcher.watch(src, RecursiveMode::NonRecursive)?;
 
+    let mode = if recursive {
+        RecursiveMode::Recursive
+    } else {
+        RecursiveMode::NonRecursive
+    };
+
+    watcher.watch(src, mode)?;
     println!("Watching {} for changes…", src.display());
 
     for event in rx {
@@ -134,10 +130,34 @@ fn watch_file(
             Ok(ev) if matches!(ev.kind, EventKind::Modify(_)) => {
                 println!("File changed — regenerating HTML…");
                 verbose!(verbose, "event: {ev:?}");
-                let html = render_markdown_file(src, css, build_toc, verbose, template)?;
+
+                let html = if is_dir {
+                    let dir = dir.as_deref().unwrap();
+                    match folder::render_folder(dir, &css, build_toc, verbose, template.as_deref())
+                    {
+                        Ok(files) => folder::build_folder_html(&files, &css),
+                        Err(e) => {
+                            eprintln!("Render error: {e}");
+                            continue;
+                        }
+                    }
+                } else {
+                    match render_markdown_file(src, &css, build_toc, verbose, template.as_deref()) {
+                        Ok(html) => html,
+                        Err(e) => {
+                            eprintln!("Render error: {e}");
+                            continue;
+                        }
+                    }
+                };
+
                 verbose!(verbose, "rendered {} bytes", html.len());
-                fs::write(dest, html)?;
-                verbose!(verbose, "wrote to: {}", dest.display());
+
+                let rt = tokio::runtime::Handle::current();
+                let state = Arc::clone(&state);
+                rt.spawn(async move {
+                    state.update(html).await;
+                });
             }
             Ok(_) => {}
             Err(e) => eprintln!("Watch error: {e:?}"),
@@ -147,23 +167,15 @@ fn watch_file(
     Ok(())
 }
 
-fn setup_ctrlc(preview: &Arc<TempPreview>, verbose: bool) -> Result<(), Box<dyn Error>> {
-    let preview_for_handler = Arc::clone(preview);
-    ctrlc::set_handler(move || {
-        verbose!(verbose, "Ctrl+C detected — cleaning up…");
-        preview_for_handler.cleanup();
-        std::process::exit(0);
-    })?;
-    Ok(())
-}
-
 // ---------------------------------------------------------------------------
 // Entry point
 // ---------------------------------------------------------------------------
 
-fn main() -> Result<(), Box<dyn Error>> {
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn Error>> {
     let args = args::parse_args()?;
     let config = config::Config::load();
+    let port = args.port.or(config.port).unwrap_or(3000);
 
     if args.verbose {
         eprintln!("[verbose] args:   {args:?}");
@@ -176,74 +188,82 @@ fn main() -> Result<(), Box<dyn Error>> {
         .as_deref()
         .or(config.theme.as_deref())
         .unwrap_or("light");
-    verbose!(args.verbose, "theme:           {theme}");
+    verbose!(args.verbose, "theme: {theme}");
 
     let template = resolve_template(&args, &config)?;
     let template_ref = template.as_deref();
 
-    let filename = resolve_output_filename(&args, &config);
-    let save = args.save.or(config.save).unwrap_or(false);
-    verbose!(args.verbose, "output filename: {filename}");
-    verbose!(args.verbose, "save on exit:    {save}");
-
     let path = args.file.canonicalize()?;
+    let watch = args.watch;
+    let build_toc = args.toc;
+    let verbose = args.verbose;
 
-    // --- Directory mode ---
-    if path.is_dir() {
-        let files = folder::render_folder(&path, &css, args.toc, args.verbose, template_ref)?;
-        if files.is_empty() {
-            return Err("No Markdown files found in directory.".into());
-        }
-        verbose!(args.verbose, "found {} markdown files", files.len());
-
-        let html = folder::build_folder_html(&files, &css);
-        let preview_path = browser::open_html_and_wait(&html, &filename)?;
-        verbose!(
-            args.verbose,
-            "preview written to: {}",
-            preview_path.display()
-        );
-
-        let preview = Arc::new(TempPreview::new(preview_path, save));
-        setup_ctrlc(&preview, args.verbose)?;
-
-        loop {
-            std::thread::sleep(std::time::Duration::from_secs(60));
-        }
-    }
-
-    // --- Single file mode ---
-
-    // --no-open: print HTML to stdout and exit immediately.
+    // --no-open: print HTML to stdout and exit immediately (no server needed).
     if args.no_open {
-        let html = render_markdown_file(&path, &css, args.toc, args.verbose, template_ref)?;
-        verbose!(args.verbose, "rendered {} bytes of HTML", html.len());
+        let html = render_markdown_file(&path, &css, build_toc, verbose, template_ref)?;
+        verbose!(verbose, "rendered {} bytes of HTML", html.len());
         println!("{html}");
         return Ok(());
     }
 
-    let html = render_markdown_file(&path, &css, args.toc, args.verbose, template_ref)?;
-    verbose!(args.verbose, "rendered {} bytes of HTML", html.len());
+    // --- Render initial HTML ---
+    let initial_html = if path.is_dir() {
+        let files = folder::render_folder(&path, &css, build_toc, verbose, template_ref)?;
+        if files.is_empty() {
+            return Err("No Markdown files found in directory.".into());
+        }
+        verbose!(verbose, "found {} markdown files", files.len());
+        folder::build_folder_html(&files, &css)
+    } else {
+        render_markdown_file(&path, &css, build_toc, verbose, template_ref)?
+    };
 
-    let preview_path = browser::open_html_and_wait(&html, &filename)?;
-    verbose!(
-        args.verbose,
-        "preview written to: {}",
-        preview_path.display()
-    );
+    verbose!(verbose, "rendered {} bytes of HTML", initial_html.len());
 
-    let preview = Arc::new(TempPreview::new(preview_path.clone(), save));
-    setup_ctrlc(&preview, args.verbose)?;
+    // --- Save HTML to disk if --save is set ---
+    save_html_if_needed(&initial_html, &args, &config, verbose)?;
 
-    if args.watch {
-        watch_file(
-            &path,
-            &preview_path,
-            &css,
-            args.verbose,
-            args.toc,
-            template_ref,
-        )?;
+    // --- Start server ---
+    let state = server::ServerState::new(initial_html);
+    let state_for_server = Arc::clone(&state);
+
+    tokio::spawn(async move {
+        server::start(state_for_server, port).await;
+    });
+
+    // Open browser
+    let url = format!("http://127.0.0.1:{port}");
+    verbose!(verbose, "opening browser at {url}");
+    webbrowser::open(&url)?;
+
+    // --- Watch loop (if --watch) ---
+    if watch {
+        let is_dir = path.is_dir();
+        let dir = if is_dir { Some(path.clone()) } else { None };
+        let css_owned = css.clone();
+        let template_owned = template.clone();
+        let state_for_watch = Arc::clone(&state);
+
+        tokio::task::spawn_blocking(move || {
+            if let Err(e) = watch_and_serve(
+                &path,
+                is_dir,
+                css_owned,
+                build_toc,
+                verbose,
+                template_owned,
+                state_for_watch,
+                is_dir,
+                dir,
+            ) {
+                eprintln!("Watch error: {e}");
+            }
+        })
+        .await?;
+    } else {
+        println!("Press Ctrl-C to stop the server…");
+        tokio::signal::ctrl_c().await?;
+        verbose!(verbose, "Ctrl-C received — shutting down…");
     }
 
     Ok(())

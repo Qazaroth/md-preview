@@ -1,6 +1,6 @@
 # md-preview
 
-A fast, minimal CLI tool written in Rust to preview Markdown files as HTML in your browser — with optional live reload.
+A fast, minimal CLI tool written in Rust to preview Markdown files as HTML in your browser — with live reload via a local server.
 
 Built as a learning project. See [ROADMAP](ROADMAP.md) for planned features and [CHANGELOG](CHANGELOG.md) for release history.
 
@@ -8,8 +8,8 @@ Built as a learning project. See [ROADMAP](ROADMAP.md) for planned features and 
 
 ## Features
 
+- Serves preview via `http://localhost` with instant live reload on file save (`--watch`)
 - Renders Markdown to HTML and opens it in your default browser
-- Live reload on file save (`--watch`)
 - Prints raw HTML to stdout (`--no-open`)
 - Built-in light, dark, and GitHub themes (`--theme`)
 - User-supplied CSS stylesheet support (`--css`)
@@ -17,11 +17,12 @@ Built as a learning project. See [ROADMAP](ROADMAP.md) for planned features and 
 - Folder preview with a sidebar file index
 - Optional auto-generated table of contents (`--toc`)
 - Syntax highlighting for fenced code blocks
+- Save rendered HTML to disk (`--save`)
 - Persistent config file for default preferences
 
 ## Installation
 
-**Recommended — download a prebuilt binary** from the [Releases](https://github.com/qazaroth/md-preview/releases) tab. No Rust toolchain required.
+**Recommended — download a prebuilt binary** from the [Releases](https://github.com/Qazaroth/md-preview/releases) tab. No Rust toolchain required.
 
 > **Note:** Release binaries are built at a point in time and may not include the latest features.
 > If a feature listed in this README is not available in the downloaded binary, build from source instead to get the most up-to-date version.
@@ -29,7 +30,7 @@ Built as a learning project. See [ROADMAP](ROADMAP.md) for planned features and 
 Alternatively, build from source:
 
 ```bash
-git clone https://github.com/qazaroth/md-preview
+git clone https://github.com/Qazaroth/md-preview
 cd md-preview
 cargo build --release
 ```
@@ -39,11 +40,14 @@ The binary will be at `./target/release/md-preview`.
 ## Usage
 
 ```bash
-# Open a preview in the browser
+# Open a preview in the browser (served at http://localhost:3000)
 md-preview --file README.md
 
 # Live reload on save
 md-preview --file README.md --watch
+
+# Use a custom port
+md-preview --file README.md --port 8080
 
 # Print HTML to stdout
 md-preview --file README.md --no-open
@@ -57,11 +61,11 @@ md-preview --file README.md --css ./my-style.css
 # Use a custom HTML template
 md-preview --file README.md --template ./my-template.html
 
-# Set a custom output filename
-md-preview --file README.md --output my-preview.html
-
-# Keep the generated preview file after exit
+# Save the rendered HTML to disk
 md-preview --file README.md --save
+
+# Save to a specific filename
+md-preview --file README.md --save --output my-preview.html
 
 # Preview all Markdown files in a folder
 md-preview --file ./docs/
@@ -75,15 +79,22 @@ md-preview --file README.md --toc
 | Flag | Description |
 |------|-------------|
 | `--file <PATH>` | Path to a Markdown file or folder *(required)* |
-| `--watch` | Re-render on every file save |
+| `--watch` | Re-render and reload the browser on every file save |
+| `--port <PORT>` | Port to serve the preview on (default: `3000`) |
 | `--no-open` | Print HTML to stdout instead of opening a browser |
 | `--theme <THEME>` | Preview theme: `light` (default), `dark`, or `github` |
 | `--css <PATH>` | Path to a custom CSS file (overrides `--theme`) |
 | `--template <PATH>` | Path to a custom HTML template file |
-| `--output <NAME>` | Output filename for the preview file (default: `preview.html`) |
-| `--toc` | Auto-generate a table of contents from headings (skipped if the file already has one) |
-| `--save` | Keep the preview file after exit |
+| `--output <NAME>` | Filename to save the rendered HTML to (default: `preview.html`) |
+| `--toc` | Auto-generate a table of contents from headings (skipped if one already exists) |
+| `--save` | Save the rendered HTML to disk |
 | `--verbose` | Print diagnostic output to stderr |
+
+## Live Reload
+
+`md-preview` spins up a local HTTP server and serves the preview at `http://localhost:3000` (or whichever port you set). When `--watch` is active, the browser reloads automatically via WebSocket whenever the source file changes — no manual refresh needed.
+
+Press **Ctrl-C** to stop the server.
 
 ## Folder Preview
 
@@ -95,7 +106,7 @@ md-preview --file ./docs/
 
 - `README.md` is always listed first in the sidebar
 - All other files are sorted alphabetically
-- Press **Ctrl-C** to exit and clean up the preview file
+- Works with `--watch` — any file change in the folder triggers a reload
 
 ## Custom Templates
 
@@ -142,6 +153,7 @@ You can set default preferences in a config file to avoid repeating flags every 
 
 ```toml
 theme = "dark"
+port = 8080
 output_filename = "my-preview.html"
 template = "./templates/my-template.html"
 save = true
@@ -153,9 +165,10 @@ save = true
 
 - [`pulldown-cmark`](https://github.com/raphlinus/pulldown-cmark) — Markdown parsing
 - [`clap`](https://github.com/clap-rs/clap) — CLI argument parsing
+- [`axum`](https://github.com/tokio-rs/axum) — Local HTTP server and WebSocket live reload
+- [`tokio`](https://github.com/tokio-rs/tokio) — Async runtime
 - [`notify`](https://github.com/notify-rs/notify) — File watching
 - [`webbrowser`](https://github.com/amodm/webbrowser-rs) — Opening the browser
-- [`ctrlc`](https://github.com/Detegr/rust-ctrlc) — Ctrl-C handling
 - [`serde`](https://github.com/serde-rs/serde) + [`toml`](https://github.com/toml-rs/toml) — Config file parsing
 - [`dirs`](https://github.com/dirs-dev/dirs-rs) — Platform config directory resolution
 - [`syntect`](https://github.com/trishume/syntect) — Syntax highlighting for code blocks
@@ -164,8 +177,8 @@ save = true
 
 Found a bug or have a feature idea? Contributions are welcome via GitHub Issues:
 
-- **[Report a bug](https://github.com/qazaroth/md-preview/issues/new?template=bug_report.yml)**
-- **[Request a feature](https://github.com/qazaroth/md-preview/issues/new?template=feature_request.yml)**
+- **[Report a bug](https://github.com/Qazaroth/md-preview/issues/new?template=bug_report.yml)**
+- **[Request a feature](https://github.com/Qazaroth/md-preview/issues/new?template=feature_request.yml)**
 
 For larger changes, open an issue first to discuss before submitting a pull request.
 

@@ -92,7 +92,7 @@ A fast, minimal Rust CLI to preview Markdown files as HTML in the browser.
 **Goal:** Make it production-ready and publicly available.
 
 - [x] Write a comprehensive `README.md` with badges and usage examples
-- [ ] Record a demo GIF using `vhs` or `asciinema`
+- [ ] ~~Record a demo GIF using `vhs` or `asciinema`~~ *(postponed)*
 - [x] Add `.gitignore`
 - [x] Build release binaries (`cargo build --release`)
 - [x] Publish on GitHub Releases with prebuilt binaries for major platforms
@@ -102,7 +102,7 @@ A fast, minimal Rust CLI to preview Markdown files as HTML in the browser.
 
 ## Future Ideas
 
-- [ ] Serve via `localhost` (e.g. using `axum` or `actix-web`)
+- [x] Serve via `localhost` (e.g. using `axum` or `actix-web`)
 - [ ] Package as a desktop app with Tauri
 - [ ] Export to PDF (headless Chrome or `wkhtmltopdf`)
 - [ ] Math rendering support (MathJax / KaTeX)

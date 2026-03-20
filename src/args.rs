@@ -43,6 +43,10 @@ pub struct Args {
     /// Path to a custom HTML template file
     #[arg(long)]
     pub template: Option<PathBuf>,
+
+    /// Port to serve the preview on (default: 3000)
+    #[arg(long, default_value = "3000")]
+    pub port: Option<u16>,
 }
 
 pub fn parse_args() -> Result<Args, Box<dyn Error>> {

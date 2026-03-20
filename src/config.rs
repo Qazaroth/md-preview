@@ -7,6 +7,7 @@ pub struct Config {
     pub theme: Option<String>,
     pub save: Option<bool>,
     pub template: Option<String>,
+    pub port: Option<u16>,
 }
 
 impl Config {
