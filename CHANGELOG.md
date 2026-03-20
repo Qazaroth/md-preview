@@ -22,6 +22,8 @@
 
 ### Features
 
+- Now able to generate Table of Content if requested
+
 - Able to preview folder now
 
 - Made verbose switch actually useful

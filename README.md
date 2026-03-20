@@ -21,6 +21,9 @@ Built as a learning project. See [ROADMAP](ROADMAP.md) for planned features and 
 
 **Recommended — download a prebuilt binary** from the [Releases](https://github.com/qazaroth/md-previewer/releases) tab. No Rust toolchain required.
 
+> **Note:** Release binaries are built at a point in time and may not include the latest features.
+> If a feature listed in this README is not available in the downloaded binary, build from source instead to get the most up-to-date version.
+
 Alternatively, build from source:
 
 ```bash
