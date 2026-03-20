@@ -160,6 +160,15 @@ save = true
 - [`dirs`](https://github.com/dirs-dev/dirs-rs) — Platform config directory resolution
 - [`syntect`](https://github.com/trishume/syntect) — Syntax highlighting for code blocks
 
+## Contributing
+
+Found a bug or have a feature idea? Contributions are welcome via GitHub Issues:
+
+- **[Report a bug](https://github.com/qazaroth/md-previewer/issues/new?template=bug_report.yml)**
+- **[Request a feature](https://github.com/qazaroth/md-previewer/issues/new?template=feature_request.yml)**
+
+For larger changes, open an issue first to discuss before submitting a pull request.
+
 ## Acknowledgements
 
 AI tooling (Claude) was used as an assistance tool during development — for code review, refactoring suggestions, and documentation.
