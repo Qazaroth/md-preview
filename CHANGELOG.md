@@ -4,6 +4,8 @@
 
 ### Chores
 
+- added bug report template
+
 - add unit tests for markdown module
 
 
@@ -19,6 +21,8 @@
 
 
 ### Features
+
+- Made verbose switch actually useful
 
 - Table of contents should work now in html
 

@@ -1,6 +1,7 @@
 mod args;
 mod browser;
 mod config;
+mod folder;
 mod markdown;
 
 use notify::{Config, EventKind, RecommendedWatcher, RecursiveMode, Watcher};
@@ -54,7 +55,7 @@ impl Drop for TempPreview {
 
 fn resolve_css(args: &args::Args, config: &config::Config) -> Result<String, Box<dyn Error>> {
     if let Some(path) = &args.css {
-        verbose!(true, "using custom CSS from: {}", path.display());
+        verbose!(args.verbose, "using custom CSS from: {}", path.display());
         return Ok(fs::read_to_string(path)?);
     }
 
@@ -111,6 +112,16 @@ fn watch_file(src: &Path, dest: &Path, css: &str, verbose: bool) -> Result<(), B
     Ok(())
 }
 
+fn setup_ctrlc(preview: &Arc<TempPreview>, verbose: bool) -> Result<(), Box<dyn Error>> {
+    let preview_for_handler = Arc::clone(preview);
+    ctrlc::set_handler(move || {
+        verbose!(verbose, "Ctrl+C detected — cleaning up…");
+        preview_for_handler.cleanup();
+        std::process::exit(0);
+    })?;
+    Ok(())
+}
+
 // ---------------------------------------------------------------------------
 // Entry point
 // ---------------------------------------------------------------------------
@@ -125,29 +136,56 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
 
     let css = resolve_css(&args, &config)?;
-
     let theme = args
         .theme
         .as_deref()
         .or(config.theme.as_deref())
         .unwrap_or("light");
-    verbose!(args.verbose, "theme:    {theme}");
+    verbose!(args.verbose, "theme:           {theme}");
+
+    let filename = resolve_output_filename(&args, &config);
+    let save = args.save.or(config.save).unwrap_or(false);
+    verbose!(args.verbose, "output filename: {filename}");
+    verbose!(args.verbose, "save on exit:    {save}");
+
+    let path = args.file.canonicalize()?;
+
+    // --- Directory mode ---
+    if path.is_dir() {
+        let files = folder::render_folder(&path, &css)?;
+        if files.is_empty() {
+            return Err("No Markdown files found in directory.".into());
+        }
+        verbose!(args.verbose, "found {} markdown files", files.len());
+
+        let html = folder::build_folder_html(&files, &css);
+        let preview_path = browser::open_html_and_wait(&html, &filename)?;
+        verbose!(
+            args.verbose,
+            "preview written to: {}",
+            preview_path.display()
+        );
+
+        let preview = Arc::new(TempPreview::new(preview_path, save));
+        setup_ctrlc(&preview, args.verbose)?;
+
+        // Park the thread — nothing else to do in folder mode
+        loop {
+            std::thread::sleep(std::time::Duration::from_secs(60));
+        }
+    }
+
+    // --- Single file mode ---
 
     // --no-open: print HTML to stdout and exit immediately.
     if args.no_open {
-        let html = render_markdown_file(&args.file, &css)?;
+        let html = render_markdown_file(&path, &css)?;
         verbose!(args.verbose, "rendered {} bytes of HTML", html.len());
         println!("{html}");
         return Ok(());
     }
 
-    let filename = resolve_output_filename(&args, &config);
-    let save = args.save.or(config.save).unwrap_or(false);
-
-    verbose!(args.verbose, "output filename: {filename}");
-    verbose!(args.verbose, "save on exit:    {save}");
-
-    let html = render_markdown_file(&args.file, &css)?;
+    let html = render_markdown_file(&path, &css)?;
     verbose!(args.verbose, "rendered {} bytes of HTML", html.len());
 
     let preview_path = browser::open_html_and_wait(&html, &filename)?;
@@ -157,21 +195,11 @@ fn main() -> Result<(), Box<dyn Error>> {
         preview_path.display()
     );
 
-    // `preview` deletes the file on drop (unless --save was set).
     let preview = Arc::new(TempPreview::new(preview_path.clone(), save));
-
-    // Mirror the same cleanup in the Ctrl-C handler so the file is removed
-    // even when the process is interrupted before `preview` drops normally.
-    let preview_for_handler = Arc::clone(&preview);
-    let verbose = args.verbose;
-    ctrlc::set_handler(move || {
-        verbose!(verbose, "Ctrl+C detected — cleaning up…");
-        preview_for_handler.cleanup();
-        std::process::exit(0);
-    })?;
+    setup_ctrlc(&preview, args.verbose)?;
 
     if args.watch {
-        watch_file(&args.file, &preview_path, &css, args.verbose)?;
+        watch_file(&path, &preview_path, &css, args.verbose)?;
     }
 
     Ok(())

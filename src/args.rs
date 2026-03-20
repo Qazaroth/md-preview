@@ -41,7 +41,7 @@ pub fn parse_args() -> Result<Args, Box<dyn Error>> {
     let args = Args::parse();
 
     if !args.file.exists() {
-        return Err(format!("File not found: {}", args.file.display()).into());
+        return Err(format!("Path not found: {}", args.file.display()).into());
     }
 
     Ok(args)
