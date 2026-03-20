@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## v0.8.0 - 2026-03-20
 
 ### Bug Fixes
 
@@ -12,6 +12,11 @@
 - Updated links in README so that they work *(2026-03-20 12:45)*
 
 - Updated README to include how to report bugs or give suggestions *(2026-03-20 12:35)*
+
+
+### Features
+
+- preview not hosted via localhost server *(2026-03-20 15:56)*
 
 ## v0.7.0 - 2026-03-20
 
@@ -180,4 +185,3 @@
 - Added README *(2026-03-18 16:55)*
 
 - First commit *(2026-03-18 16:52)*
-
