@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## v0.7.0 - 2026-03-20
 
 ### Bug Fixes
 
@@ -30,6 +30,8 @@
 
 
 ### Features
+
+- Custom HTML templates are now supported *(2026-03-20 12:26)*
 
 - syntax highlighting for fenced code blocks using syntect *(2026-03-20 11:59)*
 
@@ -160,4 +162,3 @@
 - Added README *(2026-03-18 16:55)*
 
 - First commit *(2026-03-18 16:52)*
-
