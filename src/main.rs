@@ -22,6 +22,15 @@ macro_rules! verbose {
     };
 }
 
+pub struct WatchConfig {
+    pub css: String,
+    pub build_toc: bool,
+    pub verbose: bool,
+    pub template: Option<String>,
+    pub is_dir: bool,
+    pub dir: Option<PathBuf>,
+}
+
 // ---------------------------------------------------------------------------
 // Core logic helpers
 // ---------------------------------------------------------------------------
@@ -105,13 +114,8 @@ fn save_html_if_needed(
 fn watch_and_serve(
     src: &Path,
     recursive: bool,
-    css: String,
-    build_toc: bool,
-    verbose: bool,
-    template: Option<String>,
+    cfg: WatchConfig,
     state: Arc<server::ServerState>,
-    is_dir: bool,
-    dir: Option<PathBuf>,
 ) -> Result<(), Box<dyn Error>> {
     let (tx, rx) = channel();
     let mut watcher: RecommendedWatcher = Watcher::new(tx, Config::default())?;
@@ -129,20 +133,31 @@ fn watch_and_serve(
         match event {
             Ok(ev) if matches!(ev.kind, EventKind::Modify(_)) => {
                 println!("File changed — regenerating HTML…");
-                verbose!(verbose, "event: {ev:?}");
+                verbose!(cfg.verbose, "event: {ev:?}");
 
-                let html = if is_dir {
-                    let dir = dir.as_deref().unwrap();
-                    match folder::render_folder(dir, &css, build_toc, verbose, template.as_deref())
-                    {
-                        Ok(files) => folder::build_folder_html(&files, &css),
+                let html = if cfg.is_dir {
+                    let dir = cfg.dir.as_deref().unwrap();
+                    match folder::render_folder(
+                        dir,
+                        &cfg.css,
+                        cfg.build_toc,
+                        cfg.verbose,
+                        cfg.template.as_deref(),
+                    ) {
+                        Ok(files) => folder::build_folder_html(&files, &cfg.css),
                         Err(e) => {
                             eprintln!("Render error: {e}");
                             continue;
                         }
                     }
                 } else {
-                    match render_markdown_file(src, &css, build_toc, verbose, template.as_deref()) {
+                    match render_markdown_file(
+                        src,
+                        &cfg.css,
+                        cfg.build_toc,
+                        cfg.verbose,
+                        cfg.template.as_deref(),
+                    ) {
                         Ok(html) => html,
                         Err(e) => {
                             eprintln!("Render error: {e}");
@@ -151,8 +166,7 @@ fn watch_and_serve(
                     }
                 };
 
-                verbose!(verbose, "rendered {} bytes", html.len());
-
+                verbose!(cfg.verbose, "rendered {} bytes", html.len());
                 let rt = tokio::runtime::Handle::current();
                 let state = Arc::clone(&state);
                 rt.spawn(async move {
@@ -207,7 +221,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
     }
 
     // --- Render initial HTML ---
-    let initial_html = if path.is_dir() {
+    let is_dir = path.is_dir();
+    let initial_html = if is_dir {
         let files = folder::render_folder(&path, &css, build_toc, verbose, template_ref)?;
         if files.is_empty() {
             return Err("No Markdown files found in directory.".into());
@@ -238,24 +253,20 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     // --- Watch loop (if --watch) ---
     if watch {
-        let is_dir = path.is_dir();
         let dir = if is_dir { Some(path.clone()) } else { None };
-        let css_owned = css.clone();
-        let template_owned = template.clone();
         let state_for_watch = Arc::clone(&state);
 
+        let watch_cfg = WatchConfig {
+            css: css.clone(),
+            build_toc,
+            verbose,
+            template: template.clone(),
+            is_dir,
+            dir,
+        };
+
         tokio::task::spawn_blocking(move || {
-            if let Err(e) = watch_and_serve(
-                &path,
-                is_dir,
-                css_owned,
-                build_toc,
-                verbose,
-                template_owned,
-                state_for_watch,
-                is_dir,
-                dir,
-            ) {
+            if let Err(e) = watch_and_serve(&path, is_dir, watch_cfg, state_for_watch) {
                 eprintln!("Watch error: {e}");
             }
         })

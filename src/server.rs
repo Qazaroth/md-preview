@@ -58,14 +58,9 @@ async fn ws_handler(
 
 async fn handle_ws(mut socket: WebSocket, state: Arc<ServerState>) {
     let mut rx = state.reload_tx.subscribe();
-    loop {
-        match rx.recv().await {
-            Ok(()) => {
-                if socket.send(Message::Text("reload".into())).await.is_err() {
-                    break; // client disconnected
-                }
-            }
-            Err(_) => break,
+    while let Ok(()) = rx.recv().await {
+        if socket.send(Message::Text("reload".into())).await.is_err() {
+            break;
         }
     }
 }
