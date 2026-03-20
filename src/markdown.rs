@@ -102,7 +102,7 @@ fn highlight_code_blocks(html: &str, verbose: bool) -> String {
             .find_syntax_by_token(&lang)
             .unwrap_or_else(|| ss.find_syntax_plain_text());
 
-        let highlighted = highlighted_html_for_string(&raw_code, &ss, syntax, theme)
+        let highlighted = highlighted_html_for_string(&raw_code, ss, syntax, theme)
             .unwrap_or_else(|_| format!("<pre><code>{}</code></pre>", raw_code));
 
         output.push_str(&highlighted);
@@ -219,7 +219,7 @@ pub fn markdown_to_html(
     let parser = Parser::new_ext(input, Options::all());
     let mut body = String::with_capacity(input.len() * 2);
     html::push_html(&mut body, parser);
-    let mut body = inject_heading_ids(&body);
+    let body = inject_heading_ids(&body);
     let body = highlight_code_blocks(&body, verbose);
 
     let body = if need_toc && !has_toc(&body) {
