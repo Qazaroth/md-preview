@@ -1,10 +1,105 @@
 use pulldown_cmark::{Options, Parser, html};
+use std::sync::OnceLock;
 use std::{error::Error, fs, path::Path};
+use syntect::{highlighting::ThemeSet, html::highlighted_html_for_string, parsing::SyntaxSet};
+
+static SYNTAX_SET: OnceLock<SyntaxSet> = OnceLock::new();
+static THEME_SET: OnceLock<ThemeSet> = OnceLock::new();
 
 macro_rules! verbose {
     ($verbose:expr, $($arg:tt)*) => {
         if $verbose { eprintln!("[verbose] {}", format!($($arg)*)); }
     };
+}
+
+fn highlight_code_blocks(html: &str, verbose: bool) -> String {
+    verbose!(
+        verbose,
+        "looking for code blocks, found: {}",
+        html.contains("<pre><code")
+    );
+    verbose!(
+        verbose,
+        "sample: {:?}",
+        html.find("<pre><code").map(|i| &html[i..i + 50])
+    );
+
+    let ss = SYNTAX_SET.get_or_init(SyntaxSet::load_defaults_newlines);
+    let ts = THEME_SET.get_or_init(ThemeSet::load_defaults);
+    let theme = &ts.themes["base16-ocean.dark"];
+
+    let mut output = String::with_capacity(html.len());
+    let mut rest = html;
+
+    while let Some(start) = rest.find("<pre><code") {
+        output.push_str(&rest[..start]);
+        rest = &rest[start..];
+
+        // Extract language
+        let lang = if let Some(class_start) = rest.find("class=\"language=") {
+            let after = &rest[class_start + 16..];
+            after.split('"').next().unwrap_or("").to_string()
+        } else {
+            String::new()
+        };
+
+        // Find opening <pre>
+        let pre_end = match rest.find('>') {
+            Some(i) => i + 1,
+            None => {
+                output.push_str(rest);
+                return output;
+            }
+        };
+
+        // Find opening <code ...>
+        let code_tag_start = match rest[pre_end..].find("<code") {
+            Some(i) => pre_end + i,
+            None => {
+                output.push_str(rest);
+                return output;
+            }
+        };
+
+        let code_start = match rest[code_tag_start..].find('>') {
+            Some(i) => code_tag_start + i + 1,
+            None => {
+                output.push_str(rest);
+                return output;
+            }
+        };
+
+        let code_end = match rest.find("</code></pre>") {
+            Some(i) => i,
+            None => {
+                output.push_str(rest);
+                return output;
+            }
+        };
+
+        let raw_code = decode_html_entities(&rest[code_start..code_end]);
+
+        let syntax = ss
+            .find_syntax_by_token(&lang)
+            .unwrap_or_else(|| ss.find_syntax_plain_text());
+
+        let highlighted = highlighted_html_for_string(&raw_code, &ss, syntax, theme)
+            .unwrap_or_else(|_| format!("<pre><code>{}</code></pre>", raw_code));
+
+        output.push_str(&highlighted);
+        rest = &rest[code_end + "</code></pre>".len()..];
+    }
+
+    output.push_str(rest);
+    output
+}
+
+fn decode_html_entities(s: &str) -> String {
+    s.replace("&amp;", "&")
+        .replace("&lt;", "<")
+        .replace("&gt;", ">")
+        .replace("&quot;", "\"")
+        .replace("&#39;", "'")
 }
 
 struct Heading {
@@ -99,6 +194,7 @@ pub fn markdown_to_html(input: &str, css: &str, need_toc: bool, verbose: bool) -
     let mut body = String::with_capacity(input.len() * 2);
     html::push_html(&mut body, parser);
     let mut body = inject_heading_ids(&body);
+    body = highlight_code_blocks(&body, verbose);
 
     if need_toc {
         verbose!(

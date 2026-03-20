@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Bug Fixes
+
+- toc detection and add regression tests
+
+
 ### Chores
 
 - added bug report template
@@ -10,6 +15,8 @@
 
 
 ### Documentation
+
+- Updated README about new features that are not available in the binaries in releases
 
 - ROADMAP is now actually up-to-date
 
