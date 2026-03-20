@@ -35,6 +35,10 @@ pub struct Args {
     /// Output filename for the preview HTML
     #[arg(long)]
     pub output: Option<String>,
+
+    /// Auto-generate a table of contents
+    #[arg(long)]
+    pub toc: bool,
 }
 
 pub fn parse_args() -> Result<Args, Box<dyn Error>> {

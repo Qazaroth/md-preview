@@ -1,16 +1,109 @@
 use pulldown_cmark::{Options, Parser, html};
 use std::{error::Error, fs, path::Path};
 
+struct Heading {
+    level: u8,
+    text: String,
+    id: String,
+}
+
+fn has_toc(html: &str) -> bool {
+    // Look for a heading that suggests a TOC already exists
+    let markers = ["table of contents", "contents", "toc"];
+    let lower = html.to_lowercase();
+    markers.iter().any(|m| lower.contains(m))
+}
+
+fn extract_headings(html: &str) -> Vec<Heading> {
+    let mut headings = Vec::new();
+    let mut rest = html;
+
+    while let Some(start) = rest.find("<h") {
+        let tag_level = rest[start..].chars().nth(2);
+        if !matches!(tag_level, Some('1'..='6')) {
+            rest = &rest[start + 1..];
+            continue;
+        }
+
+        let level = tag_level.unwrap().to_digit(10).unwrap() as u8;
+
+        // Skip h1 - Usually page title
+        if level == 1 {
+            rest = &rest[start + 1..];
+            continue;
+        }
+
+        let close = format!("</h{}>", level);
+        let content_start = match rest[start..].find('>') {
+            Some(i) => start + i + 1,
+            None => break,
+        };
+        let content_end = match rest[content_start..].find(&*close) {
+            Some(i) => content_start + i,
+            None => break,
+        };
+        let text = strip_tags(&rest[content_start..content_end]);
+        let id = slugify(&text);
+
+        headings.push(Heading { level, text, id });
+        rest = &rest[content_end..];
+    }
+
+    headings
+}
+
+fn build_toc(headings: &[Heading]) -> String {
+    if headings.is_empty() {
+        return String::new();
+    }
+
+    let mut toc = String::from("<nav class=\"toc\"><h2>Table of Contents</h2><ul>\n");
+    let base_level = headings.iter().map(|h| h.level).min().unwrap_or(2);
+
+    for h in headings {
+        let indent = " ".repeat((h.level - base_level) as usize);
+        toc.push_str(&format!(
+            "{}<li><a href=\"#{}\">{}</a></li>\n",
+            indent, h.id, h.text
+        ));
+    }
+
+    toc.push_str("</ul></nav>\n");
+    toc
+}
+
+fn inject_toc(html: &str, toc: &str) -> String {
+    // Try to insert after the closing </h1>
+    if let Some(pos) = html.find("</h1>") {
+        let insert_at = pos + "</h1>".len();
+        let mut result = html.to_string();
+        result.insert_str(insert_at, toc);
+        return result;
+    }
+    // No h1 — prepend to the top
+    format!("{toc}{html}")
+}
+
 pub fn read_markdown(path: &Path) -> Result<String, Box<dyn Error>> {
     Ok(fs::read_to_string(path)?)
 }
 
-pub fn markdown_to_html(input: &str, css: &str) -> String {
+pub fn markdown_to_html(input: &str, css: &str, need_toc: bool) -> String {
     let parser = Parser::new_ext(input, Options::all());
     let mut body = String::with_capacity(input.len() * 2);
     html::push_html(&mut body, parser);
 
-    let body = inject_heading_ids(&body);
+    let mut body = inject_heading_ids(&body);
+
+    if need_toc {
+        body = if !has_toc(&body) {
+            let headings = extract_headings(&body);
+            let toc = build_toc(&headings);
+            inject_toc(&body, &toc)
+        } else {
+            body.to_string()
+        };
+    }
 
     format!(
         r#"<!DOCTYPE html>

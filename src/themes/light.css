@@ -137,3 +137,25 @@ li {
 input[type="checkbox"] {
     margin-right: 0.4rem;
 }
+
+.toc {
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    padding: 0.75rem 1.25rem;
+    margin: 1rem 0 1.5rem;
+    display: inline-block;
+    min-width: 200px;
+}
+.toc h2 {
+    font-size: 1rem;
+    margin: 0 0 0.5rem;
+    border: none;
+}
+.toc ul {
+    margin: 0;
+    padding-left: 1.25rem;
+}
+.toc li {
+    margin: 0.2rem 0;
+    font-size: 0.9rem;
+}

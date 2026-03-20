@@ -81,7 +81,7 @@ A fast, minimal Rust CLI to preview Markdown files as HTML in the browser.
 **Goal:** Stand out from basic implementations.
 
 - [x] Preview a folder of Markdown files with a sidebar file index
-- [ ] Auto-generate a table of contents from headings
+- [x] Auto-generate a table of contents from headings
 - [ ] Syntax-highlight fenced code blocks using `syntect`
 - [ ] Support custom HTML templates via `--template <path>`
 

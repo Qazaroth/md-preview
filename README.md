@@ -13,6 +13,8 @@ Built as a learning project. See [ROADMAP](ROADMAP.md) for planned features and 
 - Prints raw HTML to stdout (`--no-open`)
 - Built-in light, dark, and GitHub themes (`--theme`)
 - User-supplied CSS stylesheet support (`--css`)
+- Folder preview with a sidebar file index
+- Optional auto-generated table of contents (`--toc`)
 - Persistent config file for default preferences
 
 ## Installation
@@ -52,20 +54,39 @@ md-previewer --file README.md --output my-preview.html
 
 # Keep the generated preview file after exit
 md-previewer --file README.md --save
+
+# Preview all Markdown files in a folder
+md-previewer --file ./docs/
+
+# Auto-generate a table of contents
+md-previewer --file README.md --toc
 ```
 
 ## Options
 
 | Flag | Description |
 |------|-------------|
-| `--file <PATH>` | Path to the Markdown file *(required)* |
+| `--file <PATH>` | Path to a Markdown file or folder *(required)* |
 | `--watch` | Re-render on every file save |
 | `--no-open` | Print HTML to stdout instead of opening a browser |
 | `--theme <THEME>` | Preview theme: `light` (default), `dark`, or `github` |
 | `--css <PATH>` | Path to a custom CSS file (overrides `--theme`) |
 | `--output <NAME>` | Output filename for the preview file (default: `preview.html`) |
+| `--toc` | Auto-generate a table of contents from headings (skipped if the file already has one) |
 | `--save` | Keep the preview file after exit |
-| `--verbose` | Print diagnostic output |
+| `--verbose` | Print diagnostic output to stderr |
+
+## Folder Preview
+
+Passing a directory to `--file` renders all `.md` files found in it as a single page with a sidebar for navigation:
+
+```bash
+md-previewer --file ./docs/
+```
+
+- `README.md` is always listed first in the sidebar
+- All other files are sorted alphabetically
+- Press **Ctrl-C** to exit and clean up the preview file
 
 ## Configuration
 

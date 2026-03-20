@@ -22,6 +22,8 @@
 
 ### Features
 
+- Able to preview folder now
+
 - Made verbose switch actually useful
 
 - Table of contents should work now in html

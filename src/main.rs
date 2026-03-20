@@ -80,14 +80,20 @@ fn resolve_output_filename(args: &args::Args, config: &config::Config) -> String
 }
 
 /// Render a Markdown file to a full HTML page.
-fn render_markdown_file(path: &Path, css: &str) -> Result<String, Box<dyn Error>> {
+fn render_markdown_file(path: &Path, css: &str, build_toc: bool) -> Result<String, Box<dyn Error>> {
     let markdown = markdown::read_markdown(path)?;
-    Ok(markdown::markdown_to_html(&markdown, css))
+    Ok(markdown::markdown_to_html(&markdown, css, build_toc))
 }
 
 /// Watch `src` for modifications and re-write the rendered HTML to `dest`
 /// on every change.
-fn watch_file(src: &Path, dest: &Path, css: &str, verbose: bool) -> Result<(), Box<dyn Error>> {
+fn watch_file(
+    src: &Path,
+    dest: &Path,
+    css: &str,
+    verbose: bool,
+    build_toc: bool,
+) -> Result<(), Box<dyn Error>> {
     let (tx, rx) = channel();
     let mut watcher: RecommendedWatcher = Watcher::new(tx, Config::default())?;
     watcher.watch(src, RecursiveMode::NonRecursive)?;
@@ -99,7 +105,7 @@ fn watch_file(src: &Path, dest: &Path, css: &str, verbose: bool) -> Result<(), B
             Ok(ev) if matches!(ev.kind, EventKind::Modify(_)) => {
                 println!("File changed — regenerating HTML…");
                 verbose!(verbose, "event: {ev:?}");
-                let html = render_markdown_file(src, css)?;
+                let html = render_markdown_file(src, css, build_toc)?;
                 verbose!(verbose, "rendered {} bytes", html.len());
                 fs::write(dest, html)?;
                 verbose!(verbose, "wrote to: {}", dest.display());
@@ -152,7 +158,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     // --- Directory mode ---
     if path.is_dir() {
-        let files = folder::render_folder(&path, &css)?;
+        let files = folder::render_folder(&path, &css, args.toc)?;
         if files.is_empty() {
             return Err("No Markdown files found in directory.".into());
         }
@@ -179,13 +185,13 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     // --no-open: print HTML to stdout and exit immediately.
     if args.no_open {
-        let html = render_markdown_file(&path, &css)?;
+        let html = render_markdown_file(&path, &css, args.toc)?;
         verbose!(args.verbose, "rendered {} bytes of HTML", html.len());
         println!("{html}");
         return Ok(());
     }
 
-    let html = render_markdown_file(&path, &css)?;
+    let html = render_markdown_file(&path, &css, args.toc)?;
     verbose!(args.verbose, "rendered {} bytes of HTML", html.len());
 
     let preview_path = browser::open_html_and_wait(&html, &filename)?;
@@ -199,7 +205,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     setup_ctrlc(&preview, args.verbose)?;
 
     if args.watch {
-        watch_file(&path, &preview_path, &css, args.verbose)?;
+        watch_file(&path, &preview_path, &css, args.verbose, args.toc)?;
     }
 
     Ok(())
