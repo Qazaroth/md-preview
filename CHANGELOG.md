@@ -4,7 +4,14 @@
 
 ### Bug Fixes
 
+- tests work now *(2026-03-20 16:11)*
+
 - resolve clippy warnings blocking CI *(2026-03-20 12:31)*
+
+
+### Chores
+
+- updated cargo.toml *(2026-03-20 15:58)*
 
 
 ### Documentation
@@ -17,6 +24,11 @@
 ### Features
 
 - preview not hosted via localhost server *(2026-03-20 15:56)*
+
+
+### Other
+
+- v0.8.0 released *(2026-03-20 15:57)*
 
 ## v0.7.0 - 2026-03-20
 
@@ -185,3 +197,4 @@
 - Added README *(2026-03-18 16:55)*
 
 - First commit *(2026-03-18 16:52)*
+

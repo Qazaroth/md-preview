@@ -14,9 +14,7 @@ const DEFAULT_TEMPLATE: &str = r#"<!DOCTYPE html>
   <style>{{css}}</style>
 </head>
 <body>
-<div class="markdown-body" style="max-width:800px;margin:2rem auto;padding:0 1.5rem">
 {{content}}
-</div>
 </body>
 </html>"#;
 

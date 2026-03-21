@@ -118,14 +118,15 @@ pub fn build_folder_html(files: &[RenderedFile], css: &str) -> String {
   <main id="content">
     {content_sections}
   </main>
-  <script>
+    <script>
     let current = '{first_id}';
     function show(id) {{
       document.getElementById(current).style.display = 'none';
       document.getElementById(id).style.display = 'block';
       current = id;
+      renderMath(id);
     }}
-  </script>
+    </script>
 </body>
 </html>"#
     )

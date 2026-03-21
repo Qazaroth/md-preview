@@ -96,16 +96,16 @@ A fast, minimal Rust CLI to preview Markdown files as HTML in the browser.
 - [x] Add `.gitignore`
 - [x] Build release binaries (`cargo build --release`)
 - [x] Publish on GitHub Releases with prebuilt binaries for major platforms
-- [ ] ~~Submit to `crates.io`~~ *(not planned)*
+- [ ] ~~Submit to `crates.io`~~ *(deferred)*
 
 ---
 
 ## Future Ideas
 
 - [x] Serve via `localhost` (e.g. using `axum` or `actix-web`)
-- [ ] Package as a desktop app with Tauri
-- [ ] Export to PDF (headless Chrome or `wkhtmltopdf`)
-- [ ] Math rendering support (MathJax / KaTeX)
+- [ ] ~~Package as a desktop app with Tauri~~ *(deferred — out of scope for a CLI tool)*
+- [ ] ~~Export to PDF (headless Chrome or `wkhtmltopdf`)~~ *(deferred — requires external dependencies)*
+- [ ] ~~Math rendering support (MathJax / KaTeX)~~ *(deferred — rendering issues with pulldown-cmark)*
 - [ ] Mermaid diagram rendering
 - [ ] Plugin system for custom renderers
 

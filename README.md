@@ -4,6 +4,8 @@ A fast, minimal CLI tool written in Rust to preview Markdown files as HTML in yo
 
 Built as a learning project. See [ROADMAP](ROADMAP.md) for planned features and [CHANGELOG](CHANGELOG.md) for release history.
 
+*There is currently a typo in one of the commits where it says "preview not hosted", but it's actually "preview now hosted"*
+
 ---
 
 ## Features
